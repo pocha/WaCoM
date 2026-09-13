@@ -1,0 +1,44 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isMod(communityId) {
+      return request.auth != null &&
+        request.auth.uid in get(/databases/$(database)/documents/Communities/$(communityId)).data.mods;
+    }
+
+    // Mods/{lid} holds the mod's Watobot API key. Never readable or writable
+    // by clients directly — only Cloud Functions (Admin SDK) touch it.
+    match /Mods/{lid} {
+      allow read, write: if false;
+    }
+
+    match /Communities/{communityId} {
+      // A mod can only see communities they administer. Onboarding
+      // (creating/updating this doc, adding to `mods`) happens only via
+      // the onboardCommunity Cloud Function, which verifies admin status
+      // against Watobot before writing — never a direct client write.
+      allow read: if isMod(communityId);
+      allow write: if false;
+
+      match /Forms/{formId} {
+        // Public read: the unauthenticated application form page needs
+        // this. Writes only via the createForm Cloud Function, which
+        // checks the caller is a mod of the parent community.
+        allow read: if true;
+        allow write: if false;
+      }
+
+      match /Applicants/{applicantId} {
+        // Mods can read applicants for communities they administer.
+        // All writes (submission, approve, reject, the hourly join
+        // check) go through Cloud Functions only, since each has a
+        // side effect (sending a WhatsApp message) or must be trusted
+        // for an unauthenticated public submitter.
+        allow read: if isMod(communityId);
+        allow write: if false;
+      }
+    }
+  }
+}

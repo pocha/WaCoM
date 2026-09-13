@@ -1,0 +1,42 @@
+export interface ModDoc {
+  api_key: string; // encrypted, see crypto.ts
+  provider: "watobot";
+  phone_number: string;
+  created_at: FirebaseFirestore.Timestamp;
+  updated_at: FirebaseFirestore.Timestamp;
+}
+
+export interface CommunityDoc {
+  name: string;
+  mods: string[];
+  onboarded_at: FirebaseFirestore.Timestamp;
+}
+
+export interface FormQuestion {
+  id: string;
+  label: string;
+  required: boolean;
+}
+
+export interface FormDoc {
+  communityName: string;
+  questions: FormQuestion[];
+  active: boolean;
+  created_by: string;
+  created_at: FirebaseFirestore.Timestamp;
+}
+
+export type ApplicantStatus = "applied" | "rejected" | "pending_join" | "joined";
+
+export interface ApplicantDoc {
+  formId: string;
+  phone: string;
+  answers: Record<string, string>;
+  status: ApplicantStatus;
+  applied_at: FirebaseFirestore.Timestamp;
+  approved_by?: string;
+  invited_at?: FirebaseFirestore.Timestamp;
+  rejected_by?: string;
+  rejected_at?: FirebaseFirestore.Timestamp;
+  joined_at?: FirebaseFirestore.Timestamp;
+}

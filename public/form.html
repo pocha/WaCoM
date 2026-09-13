@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Join Request - WaCoM</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="/assets/theme.js"></script>
+<link rel="stylesheet" href="/assets/theme.css"/>
+</head>
+<body class="bg-surface text-on-surface font-body-md min-h-screen flex flex-col items-center justify-center px-4 py-10">
+
+<div class="w-full max-w-lg">
+  <div class="flex items-center gap-3 justify-center mb-8">
+    <div class="w-10 h-10 rounded-lg bg-primary-container flex items-center justify-center text-on-primary-container">
+      <span class="material-symbols-outlined">groups</span>
+    </div>
+    <span class="font-headline-md text-headline-md font-bold text-primary">WaCoM</span>
+  </div>
+
+  <div id="loadingState" class="text-center text-on-surface-variant font-body-md">Loading…</div>
+  <div id="errorState" class="hidden text-center text-error font-body-md"></div>
+
+  <form id="applicationForm" class="hidden card p-8 flex flex-col gap-5">
+    <div>
+      <h1 class="font-headline-lg text-headline-lg text-on-surface" id="communityTitle">Join Request</h1>
+      <p class="text-on-surface-variant font-body-md">Fill this out to request to join.</p>
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label class="font-label-md text-label-md text-on-surface-variant">Phone Number *</label>
+      <input id="phoneInput" type="tel" required class="bg-surface-container-low border-b-2 border-transparent focus:border-primary focus:ring-0 rounded-lg p-3 outline-none" placeholder="+1 555 000 0000"/>
+    </div>
+
+    <div id="questionFields" class="flex flex-col gap-5"></div>
+
+    <div id="submitMessage" class="min-h-[20px] text-sm"></div>
+    <button id="submitBtn" type="submit" class="bg-primary-container text-on-primary-container font-bold py-4 rounded-xl hover:opacity-90 active:scale-95 transition-all">Submit Application</button>
+  </form>
+
+  <div id="successState" class="hidden card p-8 text-center flex flex-col gap-3">
+    <span class="material-symbols-outlined text-primary text-5xl mx-auto" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+    <h2 class="font-headline-md text-headline-md">Application submitted</h2>
+    <p class="text-on-surface-variant font-body-md">You'll be contacted on WhatsApp once it's reviewed.</p>
+  </div>
+</div>
+
+<script type="module">
+  import {db, call} from "/assets/wacom.js";
+  import {doc, getDoc} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+  const params = new URLSearchParams(location.search);
+  const communityJid = params.get('c');
+  const formId = params.get('f');
+
+  const loadingState = document.getElementById('loadingState');
+  const errorState = document.getElementById('errorState');
+  const applicationForm = document.getElementById('applicationForm');
+  const successState = document.getElementById('successState');
+  const questionFields = document.getElementById('questionFields');
+
+  const submitApplication = call('submitApplication');
+
+  function showError(message) {
+    loadingState.classList.add('hidden');
+    errorState.textContent = message;
+    errorState.classList.remove('hidden');
+  }
+
+  if (!communityJid || !formId) {
+    showError('This link is invalid or incomplete.');
+  } else {
+    init();
+  }
+
+  async function init() {
+    const snap = await getDoc(doc(db, 'Communities', communityJid, 'Forms', formId));
+    if (!snap.exists() || !snap.data().active) {
+      showError('This form is no longer accepting applications.');
+      return;
+    }
+    const form = snap.data();
+    document.getElementById('communityTitle').textContent = `Join ${form.communityName}`;
+    form.questions.forEach((q) => questionFields.appendChild(renderQuestionField(q)));
+
+    loadingState.classList.add('hidden');
+    applicationForm.classList.remove('hidden');
+  }
+
+  function renderQuestionField(q) {
+    const wrap = document.createElement('div');
+    wrap.className = 'flex flex-col gap-1';
+    wrap.innerHTML = `
+      <label class="font-label-md text-label-md text-on-surface-variant">${escapeHtml(q.label)}${q.required ? ' *' : ''}</label>
+      <textarea class="bg-surface-container-low border-b-2 border-transparent focus:border-primary focus:ring-0 rounded-lg p-3 outline-none question-answer" data-question-id="${q.id}" ${q.required ? 'required' : ''} rows="2"></textarea>
+    `;
+    return wrap;
+  }
+
+  applicationForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const submitBtn = document.getElementById('submitBtn');
+    const submitMessage = document.getElementById('submitMessage');
+    const phone = document.getElementById('phoneInput').value.trim();
+
+    const answers = {};
+    questionFields.querySelectorAll('.question-answer').forEach((el) => {
+      answers[el.dataset.questionId] = el.value.trim();
+    });
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting…';
+    submitMessage.textContent = '';
+    try {
+      await submitApplication({communityJid, formId, phone, answers});
+      applicationForm.classList.add('hidden');
+      successState.classList.remove('hidden');
+    } catch (err) {
+      submitMessage.textContent = err.message || 'Failed to submit. Please try again.';
+      submitMessage.className = 'min-h-[20px] text-sm text-error';
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Submit Application';
+    }
+  });
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+</script>
+
+</body>
+</html>

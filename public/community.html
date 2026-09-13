@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Manage Community - WaCoM</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="/assets/theme.js"></script>
+<link rel="stylesheet" href="/assets/theme.css"/>
+</head>
+<body class="bg-surface text-on-surface font-body-md min-h-screen flex flex-col">
+
+<nav class="bg-surface border-b border-outline-variant shadow-sm flex justify-between items-center w-full px-gutter py-2 sticky top-0 z-50">
+  <a href="/" class="flex items-center gap-3">
+    <div class="w-10 h-10 rounded-lg bg-primary-container flex items-center justify-center text-on-primary-container">
+      <span class="material-symbols-outlined">groups</span>
+    </div>
+    <span class="font-headline-md text-headline-md font-bold text-primary">WaCoM</span>
+  </a>
+  <a href="/dashboard.html" class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors">&larr; Dashboard</a>
+</nav>
+
+<main class="flex-1 w-full px-gutter md:px-24 py-10">
+  <div class="max-w-4xl mx-auto flex flex-col gap-10">
+
+    <section>
+      <h1 class="font-headline-lg text-headline-lg text-on-surface mb-1" id="communityName">Community</h1>
+      <p class="text-on-surface-variant font-body-md">Entry Gatekeeping</p>
+    </section>
+
+    <section class="card p-6">
+      <h2 class="font-headline-md text-headline-md mb-4">Application Form</h2>
+      <div id="formLinkBox" class="hidden bg-surface-container-low rounded-lg p-4 mb-4 flex items-center justify-between gap-4">
+        <span id="formLinkText" class="font-mono text-sm break-all"></span>
+        <button id="copyFormLinkBtn" class="font-label-md text-label-md text-primary font-bold flex-shrink-0">Copy</button>
+      </div>
+      <div id="questionRows" class="flex flex-col gap-3 mb-4"></div>
+      <button id="addQuestionBtn" type="button" class="text-primary font-bold font-body-md mb-4">+ Add question</button>
+      <div id="formMessage" class="min-h-[20px] text-sm mb-2"></div>
+      <button id="saveFormBtn" class="bg-primary-container text-on-primary-container font-bold px-6 py-3 rounded-xl hover:opacity-90 transition-all">Save Form</button>
+      <p class="text-muted-sm mt-2">Every applicant is always asked for their phone number — no need to add that as a question.</p>
+    </section>
+
+    <section>
+      <h2 class="font-headline-md text-headline-md mb-4">Applicants</h2>
+      <div id="applicantsLoading" class="text-on-surface-variant font-body-md">Loading…</div>
+      <div id="applicantsEmpty" class="hidden text-on-surface-variant font-body-md">No applications yet.</div>
+      <div id="applicantList" class="flex flex-col gap-3"></div>
+    </section>
+
+  </div>
+</main>
+
+<script type="module">
+  import {onAuthReady, call, db} from "/assets/wacom.js";
+  import {
+    collection, doc, getDoc, getDocs, query, where, orderBy, onSnapshot, limit
+  } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+  const params = new URLSearchParams(location.search);
+  const communityJid = params.get('id');
+  if (!communityJid) {
+    location.href = '/dashboard.html';
+  }
+
+  const createForm = call('createForm');
+  const approveApplicant = call('approveApplicant');
+  const rejectApplicant = call('rejectApplicant');
+
+  let currentFormId = null;
+
+  onAuthReady((user) => {
+    if (!user) {
+      location.href = '/dashboard.html';
+      return;
+    }
+    loadCommunityName();
+    loadActiveForm();
+    listenApplicants();
+  });
+
+  async function loadCommunityName() {
+    // Communities/{jid} is mod-only readable; if the mod isn't actually a
+    // member of this community's `mods` array, this read simply returns
+    // nothing and the page falls back to the raw jid as the title.
+    const snap = await getDoc(doc(db, 'Communities', communityJid));
+    document.getElementById('communityName').textContent = snap.exists() ? snap.data().name : communityJid;
+  }
+
+  async function loadActiveForm() {
+    const formsRef = collection(db, 'Communities', communityJid, 'Forms');
+    const q = query(formsRef, where('active', '==', true), limit(1));
+    const snap = await getDocs(q);
+    if (snap.empty) {
+      renderQuestionRows([{label: '', required: true}]);
+      return;
+    }
+    const formDoc = snap.docs[0];
+    currentFormId = formDoc.id;
+    renderQuestionRows(formDoc.data().questions);
+    showFormLink(formDoc.id);
+  }
+
+  function showFormLink(formId) {
+    const link = `${location.origin}/form.html?c=${encodeURIComponent(communityJid)}&f=${encodeURIComponent(formId)}`;
+    document.getElementById('formLinkText').textContent = link;
+    document.getElementById('formLinkBox').classList.remove('hidden');
+    document.getElementById('copyFormLinkBtn').onclick = () => navigator.clipboard.writeText(link);
+  }
+
+  const questionRows = document.getElementById('questionRows');
+
+  function renderQuestionRows(questions) {
+    questionRows.innerHTML = '';
+    questions.forEach(addQuestionRow);
+  }
+
+  function addQuestionRow(q = {label: '', required: true}) {
+    const row = document.createElement('div');
+    row.className = 'flex items-center gap-3';
+    row.innerHTML = `
+      <input class="flex-1 bg-surface-container-low border-b-2 border-transparent focus:border-primary focus:ring-0 rounded-lg p-3 outline-none question-label" placeholder="Question" value="${escapeAttr(q.label)}"/>
+      <label class="flex items-center gap-1 text-sm text-on-surface-variant flex-shrink-0">
+        <input type="checkbox" class="question-required" ${q.required ? 'checked' : ''}/> Required
+      </label>
+      <button type="button" class="text-error flex-shrink-0 remove-question">
+        <span class="material-symbols-outlined text-[20px]">delete</span>
+      </button>
+    `;
+    row.querySelector('.remove-question').addEventListener('click', () => row.remove());
+    questionRows.appendChild(row);
+  }
+
+  document.getElementById('addQuestionBtn').addEventListener('click', () => addQuestionRow());
+
+  document.getElementById('saveFormBtn').addEventListener('click', async () => {
+    const rows = [...questionRows.querySelectorAll(':scope > div')];
+    const questions = rows.map((row, i) => ({
+      id: `q${i}`,
+      label: row.querySelector('.question-label').value.trim(),
+      required: row.querySelector('.question-required').checked,
+    })).filter((q) => q.label);
+
+    const msg = document.getElementById('formMessage');
+    if (!questions.length) {
+      msg.textContent = 'Add at least one question.';
+      msg.className = 'min-h-[20px] text-sm text-error';
+      return;
+    }
+    msg.textContent = 'Saving…';
+    msg.className = 'min-h-[20px] text-sm text-on-surface-variant';
+    try {
+      const {formId} = await createForm({communityJid, questions});
+      currentFormId = formId;
+      showFormLink(formId);
+      msg.textContent = 'Saved.';
+      msg.className = 'min-h-[20px] text-sm text-primary';
+    } catch (err) {
+      msg.textContent = err.message || 'Failed to save form.';
+      msg.className = 'min-h-[20px] text-sm text-error';
+    }
+  });
+
+  function listenApplicants() {
+    const applicantsRef = collection(db, 'Communities', communityJid, 'Applicants');
+    const q = query(applicantsRef, orderBy('applied_at', 'desc'));
+    onSnapshot(q, (snap) => {
+      document.getElementById('applicantsLoading').classList.add('hidden');
+      const list = document.getElementById('applicantList');
+      const empty = document.getElementById('applicantsEmpty');
+      list.innerHTML = '';
+      if (snap.empty) {
+        empty.classList.remove('hidden');
+        return;
+      }
+      empty.classList.add('hidden');
+      snap.forEach((docSnap) => list.appendChild(renderApplicant(docSnap.id, docSnap.data())));
+    }, (err) => {
+      document.getElementById('applicantsLoading').classList.add('hidden');
+      const list = document.getElementById('applicantList');
+      list.innerHTML = `<p class="text-error font-body-md">${escapeAttr(err.message)}</p>`;
+    });
+  }
+
+  const STATUS_LABELS = {
+    applied: 'Pending review',
+    rejected: 'Rejected',
+    pending_join: 'Invited — awaiting join',
+    joined: 'Joined',
+  };
+
+  function renderApplicant(id, applicant) {
+    const card = document.createElement('div');
+    card.className = 'card p-5 flex flex-col gap-3';
+
+    const answersHtml = Object.entries(applicant.answers || {})
+      .map(([k, v]) => `<p class="text-sm"><span class="text-muted">${escapeAttr(k)}:</span> ${escapeAttr(v)}</p>`)
+      .join('');
+
+    card.innerHTML = `
+      <div class="flex items-center justify-between">
+        <p class="font-headline-md text-headline-md">${escapeAttr(applicant.phone)}</p>
+        <span class="label-muted">${STATUS_LABELS[applicant.status] || applicant.status}</span>
+      </div>
+      <div class="flex flex-col gap-1">${answersHtml}</div>
+      <div class="flex gap-3 actions"></div>
+    `;
+
+    if (applicant.status === 'applied') {
+      const actions = card.querySelector('.actions');
+      const approveBtn = document.createElement('button');
+      approveBtn.className = 'bg-primary-container text-on-primary-container font-bold px-5 py-2 rounded-xl hover:opacity-90 transition-all';
+      approveBtn.textContent = 'Approve';
+      approveBtn.addEventListener('click', async () => {
+        approveBtn.disabled = true;
+        try {
+          await approveApplicant({communityJid, applicantId: id});
+        } catch (err) {
+          alert(err.message || 'Failed to approve');
+          approveBtn.disabled = false;
+        }
+      });
+
+      const rejectBtn = document.createElement('button');
+      rejectBtn.className = 'border border-error text-error font-bold px-5 py-2 rounded-xl hover:bg-error-container/30 transition-all';
+      rejectBtn.textContent = 'Reject';
+      rejectBtn.addEventListener('click', async () => {
+        rejectBtn.disabled = true;
+        try {
+          await rejectApplicant({communityJid, applicantId: id});
+        } catch (err) {
+          alert(err.message || 'Failed to reject');
+          rejectBtn.disabled = false;
+        }
+      });
+
+      actions.append(approveBtn, rejectBtn);
+    }
+
+    return card;
+  }
+
+  function escapeAttr(str) {
+    const div = document.createElement('div');
+    div.textContent = str ?? '';
+    return div.innerHTML;
+  }
+</script>
+
+</body>
+</html>

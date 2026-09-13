@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>WaCoM - WhatsApp Community Manager</title>
+<meta name="description" content="Gatekeep who joins your WhatsApp Community: collect applications with a custom form, review and approve from a dashboard, and let WaCoM handle the invite and join confirmation."/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="/assets/theme.js"></script>
+<link rel="stylesheet" href="/assets/theme.css"/>
+</head>
+<body class="bg-surface text-on-surface font-body-md min-h-screen flex flex-col">
+
+<nav class="bg-surface border-b border-outline-variant shadow-sm flex justify-between items-center w-full px-gutter py-2 sticky top-0 z-50">
+  <a href="/" class="flex items-center gap-3">
+    <div class="w-10 h-10 rounded-lg bg-primary-container flex items-center justify-center text-on-primary-container">
+      <span class="material-symbols-outlined">groups</span>
+    </div>
+    <span class="font-headline-md text-headline-md font-bold text-primary">WaCoM</span>
+  </a>
+  <a href="/dashboard.html" class="font-label-md text-label-md bg-primary-container text-on-primary-container px-6 py-2 rounded-xl font-bold hover:opacity-90 active:scale-95 transition-all">Open Dashboard</a>
+</nav>
+
+<main class="flex-1 w-full">
+
+  <section class="flex flex-col md:flex-row items-center px-gutter md:px-24 py-16 gap-10 overflow-hidden">
+    <div class="w-full md:w-1/2 flex justify-center items-center">
+      <div class="relative w-full max-w-md aspect-square flex items-center justify-center">
+        <span class="material-symbols-outlined text-primary" style="font-size: 180px; font-variation-settings: 'FILL' 1;">verified_user</span>
+        <div class="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-gradient-to-tr from-primary-container/30 to-transparent rounded-full blur-3xl"></div>
+      </div>
+    </div>
+    <div class="w-full md:w-1/2 flex flex-col items-start gap-stack-gap">
+      <h1 class="font-headline-lg text-3xl md:text-5xl font-extrabold text-on-surface leading-tight">
+        Manage who joins your <span class="text-primary">WhatsApp Community</span>
+      </h1>
+      <p class="font-body-lg text-body-lg text-on-surface-variant max-w-md">
+        Connect your WhatsApp Community, build a short application form, and review every request before anyone gets an invite. No more open-door groups full of spam and strangers.
+      </p>
+      <div class="flex flex-wrap gap-4 mt-4">
+        <a href="/dashboard.html" class="font-label-md text-label-md bg-primary-container text-on-primary-container px-8 py-4 rounded-xl font-bold text-lg hover:opacity-90 active:scale-95 transition-all whatsapp-shadow">
+          Get Started
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="px-gutter md:px-24 py-12 bg-surface" id="how-it-works">
+    <div class="text-center mb-10">
+      <h2 class="font-headline-lg text-headline-lg text-on-surface">Entry Gatekeeping, in 4 steps</h2>
+      <p class="text-on-surface-variant font-body-md">The first of many community-management tools coming to WaCoM</p>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 max-w-6xl mx-auto">
+      <div class="bg-surface-container-low p-6 rounded-xl border border-outline-variant flex flex-col gap-3">
+        <span class="bg-primary text-on-primary w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">1</span>
+        <h3 class="font-headline-md text-headline-md">Connect &amp; onboard</h3>
+        <p class="text-on-surface-variant font-body-md">Paste your Watobot API key and pick the Community you administer.</p>
+      </div>
+      <div class="bg-surface-container-low p-6 rounded-xl border border-outline-variant flex flex-col gap-3">
+        <span class="bg-primary text-on-primary w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">2</span>
+        <h3 class="font-headline-md text-headline-md">Build a form</h3>
+        <p class="text-on-surface-variant font-body-md">Add your own questions. Share the generated link anywhere.</p>
+      </div>
+      <div class="bg-surface-container-low p-6 rounded-xl border border-outline-variant flex flex-col gap-3">
+        <span class="bg-primary text-on-primary w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">3</span>
+        <h3 class="font-headline-md text-headline-md">Review &amp; approve</h3>
+        <p class="text-on-surface-variant font-body-md">See every applicant's answers and approve or reject with one click.</p>
+      </div>
+      <div class="bg-surface-container-low p-6 rounded-xl border border-outline-variant flex flex-col gap-3">
+        <span class="bg-primary text-on-primary w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">4</span>
+        <h3 class="font-headline-md text-headline-md">Invite &amp; confirm</h3>
+        <p class="text-on-surface-variant font-body-md">WaCoM sends the invite over WhatsApp and confirms once they've joined.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="px-gutter md:px-24 py-12 bg-surface-container-low">
+    <div class="max-w-4xl mx-auto text-center">
+      <h2 class="font-headline-lg text-headline-lg text-on-surface mb-3">Built on Watobot</h2>
+      <p class="text-on-surface-variant font-body-lg">WaCoM uses your own Watobot-connected WhatsApp account to send invites — no new number, no WhatsApp Business API, no approval process.</p>
+    </div>
+  </section>
+
+</main>
+
+<footer class="px-gutter md:px-24 py-8 border-t border-outline-variant text-center text-on-surface-variant font-body-md text-sm">
+  WaCoM — WhatsApp Community Manager
+</footer>
+
+</body>
+</html>
