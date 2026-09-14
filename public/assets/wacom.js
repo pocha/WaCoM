@@ -50,9 +50,9 @@ export function onAuthReady(callback) {
   auth.authStateReady().then(() => onAuthStateChanged(auth, callback));
 }
 
-export async function signInWithApiKey(apiKey) {
+export async function signInWithApiKey(apiKey, name) {
   const validateAndSignIn = call("validateAndSignIn");
-  const {token} = await validateAndSignIn({apiKey});
+  const {token} = await validateAndSignIn({apiKey, name});
   await signInWithCustomToken(auth, token);
 }
 

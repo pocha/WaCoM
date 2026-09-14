@@ -179,51 +179,97 @@
     const card = document.createElement('div');
     card.className = 'card p-5 flex flex-col gap-3';
 
-    const answersHtml = Object.entries(applicant.answers || {})
-      .map(([k, v]) => `<p class="text-sm"><span class="text-muted">${escapeAttr(k)}:</span> ${escapeAttr(v)}</p>`)
-      .join('');
+    const questions = applicant.questions || Object.keys(applicant.answers || {}).map((qid) => ({id: qid, label: qid}));
+    const answersHtml = questions.map((q) => {
+      const answer = (applicant.answers || {})[q.id] || '';
+      return `<p class="text-sm"><span class="text-muted">Q: ${escapeAttr(q.label)}</span><br/>A: ${escapeAttr(answer)}</p>`;
+    }).join('');
 
     card.innerHTML = `
       <div class="flex items-center justify-between">
         <p class="font-headline-md text-headline-md">${escapeAttr(applicant.phone)}</p>
         <span class="label-muted">${STATUS_LABELS[applicant.status] || applicant.status}</span>
       </div>
-      <div class="flex flex-col gap-1">${answersHtml}</div>
-      <div class="flex gap-3 actions"></div>
+      <div class="flex flex-col gap-2">${answersHtml}</div>
+      <div class="flex flex-col gap-2 actions"></div>
+      <details class="text-sm">
+        <summary class="text-muted cursor-pointer select-none">History</summary>
+        <div class="flex flex-col gap-1 mt-2 text-muted-sm">${renderHistory(applicant)}</div>
+      </details>
     `;
 
     if (applicant.status === 'applied') {
       const actions = card.querySelector('.actions');
+      const buttonRow = document.createElement('div');
+      buttonRow.className = 'flex gap-3';
+      const errorMsg = document.createElement('p');
+      errorMsg.className = 'hidden text-error text-sm';
+
       const approveBtn = document.createElement('button');
-      approveBtn.className = 'bg-primary-container text-on-primary-container font-bold px-5 py-2 rounded-xl hover:opacity-90 transition-all';
+      approveBtn.className = 'bg-primary-container text-on-primary-container font-bold px-5 py-2 rounded-xl hover:opacity-90 transition-all disabled:opacity-60';
       approveBtn.textContent = 'Approve';
-      approveBtn.addEventListener('click', async () => {
-        approveBtn.disabled = true;
-        try {
-          await approveApplicant({communityJid, applicantId: id});
-        } catch (err) {
-          alert(err.message || 'Failed to approve');
-          approveBtn.disabled = false;
-        }
-      });
 
       const rejectBtn = document.createElement('button');
-      rejectBtn.className = 'border border-error text-error font-bold px-5 py-2 rounded-xl hover:bg-error-container/30 transition-all';
+      rejectBtn.className = 'border border-error text-error font-bold px-5 py-2 rounded-xl hover:bg-error-container/30 transition-all disabled:opacity-60';
       rejectBtn.textContent = 'Reject';
-      rejectBtn.addEventListener('click', async () => {
+
+      approveBtn.addEventListener('click', async () => {
+        approveBtn.disabled = true;
         rejectBtn.disabled = true;
+        errorMsg.classList.add('hidden');
+        approveBtn.textContent = 'Approving…';
         try {
-          await rejectApplicant({communityJid, applicantId: id});
+          await approveApplicant({communityJid, applicantId: id});
+          buttonRow.remove();
         } catch (err) {
-          alert(err.message || 'Failed to reject');
+          approveBtn.disabled = false;
           rejectBtn.disabled = false;
+          approveBtn.textContent = 'Approve';
+          errorMsg.textContent = err.message || 'Failed to approve. Please try again.';
+          errorMsg.classList.remove('hidden');
         }
       });
 
-      actions.append(approveBtn, rejectBtn);
+      rejectBtn.addEventListener('click', async () => {
+        approveBtn.disabled = true;
+        rejectBtn.disabled = true;
+        errorMsg.classList.add('hidden');
+        rejectBtn.textContent = 'Rejecting…';
+        try {
+          await rejectApplicant({communityJid, applicantId: id});
+          buttonRow.remove();
+        } catch (err) {
+          approveBtn.disabled = false;
+          rejectBtn.disabled = false;
+          rejectBtn.textContent = 'Reject';
+          errorMsg.textContent = err.message || 'Failed to reject. Please try again.';
+          errorMsg.classList.remove('hidden');
+        }
+      });
+
+      buttonRow.append(approveBtn, rejectBtn);
+      actions.append(buttonRow, errorMsg);
     }
 
     return card;
+  }
+
+  function renderHistory(applicant) {
+    const lines = [];
+    if (applicant.applied_at) lines.push(`Applied: ${formatTimestamp(applicant.applied_at)}`);
+    if (applicant.status === 'rejected' && applicant.rejected_at) {
+      lines.push(`Rejected by ${escapeAttr(applicant.rejected_by_name || 'a mod')}: ${formatTimestamp(applicant.rejected_at)}`);
+    }
+    if (applicant.invited_at) {
+      lines.push(`Approved by ${escapeAttr(applicant.approved_by_name || 'a mod')}: ${formatTimestamp(applicant.invited_at)}`);
+    }
+    if (applicant.joined_at) lines.push(`Joined: ${formatTimestamp(applicant.joined_at)}`);
+    return lines.map((l) => `<p>${l}</p>`).join('') || '<p>No history yet.</p>';
+  }
+
+  function formatTimestamp(ts) {
+    if (!ts || typeof ts.toDate !== 'function') return '—';
+    return ts.toDate().toLocaleString();
   }
 
   function escapeAttr(str) {

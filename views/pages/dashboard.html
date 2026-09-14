@@ -25,6 +25,10 @@
     <p class="text-on-surface-variant font-body-md mb-6">Paste your <strong>permanent</strong> Watobot API key to sign in. Generate one from your <a href="https://watobot.xyz" target="_blank" rel="noopener" class="text-primary underline">Watobot dashboard</a>.</p>
     <form id="apiKeyForm" class="flex flex-col gap-4">
       <div class="flex flex-col gap-1">
+        <label class="font-label-md text-label-md text-on-surface-variant">Your Name</label>
+        <input id="nameInput" class="bg-surface-container-low border-b-2 border-transparent focus:border-primary focus:ring-0 rounded-lg p-3 transition-all outline-none text-sm" placeholder="So applicants know who reviewed them" required/>
+      </div>
+      <div class="flex flex-col gap-1">
         <label class="font-label-md text-label-md text-on-surface-variant">Watobot API Key</label>
         <input id="apiKeyInput" class="bg-surface-container-low border-b-2 border-transparent focus:border-primary focus:ring-0 rounded-lg p-3 transition-all outline-none font-mono text-sm" placeholder="64-character key" required/>
       </div>
@@ -41,6 +45,7 @@
   const loginModal = document.getElementById('loginModal');
   const apiKeyForm = document.getElementById('apiKeyForm');
   const apiKeyInput = document.getElementById('apiKeyInput');
+  const nameInput = document.getElementById('nameInput');
   const loginSubmitBtn = document.getElementById('loginSubmitBtn');
   const loginMessage = document.getElementById('loginMessage');
 
@@ -70,13 +75,14 @@
   apiKeyForm.addEventListener('submit', async (event) => {
     event.preventDefault();
     const apiKey = apiKeyInput.value.trim();
-    if (!apiKey) return;
+    const name = nameInput.value.trim();
+    if (!apiKey || !name) return;
     loginSubmitBtn.disabled = true;
     loginSubmitBtn.textContent = 'Signing in…';
     loginMessage.textContent = '';
     loginMessage.className = 'min-h-[20px] text-sm';
     try {
-      await signInWithApiKey(apiKey);
+      await signInWithApiKey(apiKey, name);
     } catch (err) {
       loginMessage.textContent = err.message || 'Sign in failed. Check your API key and try again.';
       loginMessage.className = 'min-h-[20px] text-sm text-error';

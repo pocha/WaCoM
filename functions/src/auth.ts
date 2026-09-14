@@ -15,8 +15,12 @@ import {ModDoc} from "./types";
 // just rotate it in Watobot.
 export const validateAndSignIn = onCall(async (request) => {
   const apiKey = request.data?.apiKey;
+  const name = request.data?.name;
   if (!apiKey || typeof apiKey !== "string") {
     throw new HttpsError("invalid-argument", "apiKey is required");
+  }
+  if (!name || typeof name !== "string" || !name.trim()) {
+    throw new HttpsError("invalid-argument", "name is required");
   }
 
   const status = await getWhatsappStatus(apiKey);
@@ -36,6 +40,7 @@ export const validateAndSignIn = onCall(async (request) => {
     api_key: apiKey,
     provider: "watobot",
     phone_number: status.phoneNumber,
+    name: name.trim(),
     updated_at: now as unknown as FirebaseFirestore.Timestamp,
   };
   if (!existing.exists) {

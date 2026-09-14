@@ -2,7 +2,7 @@ import {onCall, HttpsError} from "firebase-functions/v2/https";
 import {FieldValue} from "firebase-admin/firestore";
 import {db} from "./admin";
 import {requireCommunityMod, requireUid} from "./modAccess";
-import {FormQuestion} from "./types";
+import {FormDoc, FormQuestion} from "./types";
 
 // Public form pages read Communities/{jid}/Forms/{formId} directly via the
 // Firestore client SDK (allowed by firestore.rules — Forms are publicly
@@ -71,7 +71,8 @@ export const submitApplication = onCall(async (request) => {
     .collection("Forms")
     .doc(formId);
   const formSnap = await formRef.get();
-  if (!formSnap.exists || !formSnap.data()?.active) {
+  const form = formSnap.data() as FormDoc | undefined;
+  if (!formSnap.exists || !form?.active) {
     throw new HttpsError("failed-precondition", "This form is no longer accepting applications");
   }
 
@@ -83,6 +84,7 @@ export const submitApplication = onCall(async (request) => {
       formId,
       phone,
       answers,
+      questions: form.questions,
       status: "applied",
       applied_at: FieldValue.serverTimestamp(),
     });
