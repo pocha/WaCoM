@@ -17,6 +17,7 @@ export interface CommunitySummary {
 export interface CommunityParticipant {
   id: string;
   admin: string | null;
+  phoneNumber: string | null;
 }
 
 export interface CommunityInfo {
@@ -74,15 +75,11 @@ export async function sendMessage(apiKey: string, to: string, message: string): 
   });
 }
 
-// WhatsApp jids/lids are `<digits>@s.whatsapp.net` or `<digits>@lid`. Phone
-// numbers collected on the form are compared against the leading digits of
-// each participant id, since we don't otherwise know which id format a
-// given community will report a member under.
 export function phoneDigits(phone: string): string {
   return phone.replace(/\D/g, "");
 }
 
 export function participantMatchesPhone(participant: CommunityParticipant, phone: string): boolean {
-  const digits = phoneDigits(phone);
-  return digits.length > 0 && participant.id.startsWith(digits);
+  if (!participant.phoneNumber) return false;
+  return phoneDigits(participant.phoneNumber) === phoneDigits(phone);
 }
