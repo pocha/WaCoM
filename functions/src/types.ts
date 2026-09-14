@@ -1,5 +1,5 @@
 export interface ModDoc {
-  api_key: string; // encrypted, see crypto.ts
+  api_key: string;
   provider: "watobot";
   phone_number: string;
   created_at: FirebaseFirestore.Timestamp;

@@ -1,7 +1,6 @@
 import {onSchedule} from "firebase-functions/v2/scheduler";
 import {FieldValue} from "firebase-admin/firestore";
 import {db} from "./admin";
-import {API_KEY_ENCRYPTION_KEY, decryptApiKey} from "./crypto";
 import {getCommunityInfo, participantMatchesPhone} from "./watobotClient";
 import {ApplicantDoc, CommunityDoc, ModDoc} from "./types";
 
@@ -9,7 +8,7 @@ import {ApplicantDoc, CommunityDoc, ModDoc} from "./types";
 // this job periodically confirms actual membership so applicant status
 // eventually reflects reality without relying on the applicant reporting it.
 export const hourlyJoinCheck = onSchedule(
-  {schedule: "every 60 minutes", secrets: [API_KEY_ENCRYPTION_KEY]},
+  {schedule: "every 60 minutes"},
   async () => {
     const pending = await db
       .collectionGroup("Applicants")
@@ -37,8 +36,7 @@ export const hourlyJoinCheck = onSchedule(
         const mod = modSnap.data() as ModDoc | undefined;
         if (!mod) continue;
 
-        const apiKey = decryptApiKey(mod.api_key);
-        const info = await getCommunityInfo(apiKey, communityJid);
+        const info = await getCommunityInfo(mod.api_key, communityJid);
 
         const batch = db.batch();
         for (const doc of applicantDocs) {

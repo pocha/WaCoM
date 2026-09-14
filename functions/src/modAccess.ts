@@ -1,6 +1,5 @@
 import {HttpsError} from "firebase-functions/v2/https";
 import {db} from "./admin";
-import {decryptApiKey} from "./crypto";
 import {CommunityDoc, ModDoc} from "./types";
 
 export function requireUid(auth: {uid: string} | undefined): string {
@@ -16,7 +15,7 @@ export async function getModApiKey(uid: string): Promise<string> {
   if (!mod) {
     throw new HttpsError("failed-precondition", "No Watobot API key on file for this account");
   }
-  return decryptApiKey(mod.api_key);
+  return mod.api_key;
 }
 
 export async function requireCommunityMod(uid: string, communityJid: string): Promise<CommunityDoc> {
