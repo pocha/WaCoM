@@ -16,7 +16,7 @@
     <img src="/assets/logo-icon.png" alt="Watomod logo" class="w-10 h-10 object-contain"/>
     <span class="font-headline-md text-headline-md font-bold"><span class="text-primary">Wato</span><span class="text-on-surface">mod</span></span>
   </a>
-  <a href="/dashboard.html" class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors">&larr; Dashboard</a>
+  <a href="/dashboard" class="font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors">&larr; Dashboard</a>
 </nav>
 
 <main class="flex-1 w-full px-gutter md:px-24 py-10">
@@ -59,7 +59,7 @@
   const params = new URLSearchParams(location.search);
   const communityJid = params.get('id');
   if (!communityJid) {
-    location.href = '/dashboard.html';
+    location.href = '/dashboard';
   }
 
   const createForm = call('createForm');
@@ -70,7 +70,7 @@
 
   onAuthReady((user) => {
     if (!user) {
-      location.href = '/dashboard.html';
+      location.href = '/dashboard';
       return;
     }
     loadCommunityName();
@@ -101,7 +101,7 @@
   }
 
   function showFormLink(formId) {
-    const link = `${location.origin}/form.html?c=${encodeURIComponent(communityJid)}&f=${encodeURIComponent(formId)}`;
+    const link = `${location.origin}/form?c=${encodeURIComponent(communityJid)}&f=${encodeURIComponent(formId)}`;
     document.getElementById('formLinkText').textContent = link;
     document.getElementById('formLinkBox').classList.remove('hidden');
     document.getElementById('copyFormLinkBtn').onclick = () => navigator.clipboard.writeText(link);

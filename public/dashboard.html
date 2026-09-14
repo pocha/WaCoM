@@ -132,7 +132,7 @@
     const action = document.createElement('div');
     if (community.onboarded) {
       const link = document.createElement('a');
-      link.href = `/community.html?id=${encodeURIComponent(community.id)}`;
+      link.href = `/community?id=${encodeURIComponent(community.id)}`;
       link.className = 'font-label-md text-label-md bg-primary-container text-on-primary-container px-5 py-2 rounded-xl font-bold hover:opacity-90 transition-all';
       link.textContent = 'Manage';
       action.appendChild(link);
@@ -145,7 +145,7 @@
         btn.textContent = 'Onboarding…';
         try {
           await onboardCommunity({communityJid: community.id});
-          location.href = `/community.html?id=${encodeURIComponent(community.id)}`;
+          location.href = `/community?id=${encodeURIComponent(community.id)}`;
         } catch (err) {
           btn.disabled = false;
           btn.textContent = 'Onboard';
