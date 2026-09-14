@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "prestart": "npm run build --prefix functions",
-    "start": "concurrently -k -n emulators,web -c blue,green \"firebase emulators:start --only firestore,functions,auth\" \"serve -l 5000 public\""
+    "start": "concurrently -k -n emulators,web -c blue,green \"firebase emulators:start --only firestore,functions,auth\" \"serve -l 5002 public\""
   },
   "devDependencies": {
     "concurrently": "^9.1.0",
