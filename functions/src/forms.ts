@@ -1,8 +1,16 @@
 import {onCall, HttpsError} from "firebase-functions/v2/https";
 import {FieldValue} from "firebase-admin/firestore";
+import {isValidPhoneNumber} from "libphonenumber-js";
 import {db} from "./admin";
 import {requireCommunityMod, requireUid} from "./modAccess";
-import {FormDoc, FormQuestion} from "./types";
+import {ApplicantDoc, FormDoc, FormQuestion} from "./types";
+
+// The applicant doc id, so a resubmission overwrites the same doc instead of
+// piling up duplicates — phone is already validated as a real E.164 number
+// by the time this runs, so the digits alone are a stable, unique key.
+function phoneDocId(phone: string): string {
+  return phone.replace(/\D/g, "");
+}
 
 // Public form pages read Communities/{jid}/Forms/{formId} directly via the
 // Firestore client SDK (allowed by firestore.rules — Forms are publicly
@@ -58,8 +66,11 @@ export const submitApplication = onCall(async (request) => {
   if (!communityJid || !formId || typeof communityJid !== "string" || typeof formId !== "string") {
     throw new HttpsError("invalid-argument", "communityJid and formId are required");
   }
-  if (!phone || typeof phone !== "string" || phone.replace(/\D/g, "").length < 8) {
-    throw new HttpsError("invalid-argument", "A valid phone number is required");
+  if (!phone || typeof phone !== "string" || !isValidPhoneNumber(phone)) {
+    throw new HttpsError(
+      "invalid-argument",
+      "Enter a valid WhatsApp number with country code (e.g. +14155552671)"
+    );
   }
   if (typeof answers !== "object" || answers === null) {
     throw new HttpsError("invalid-argument", "answers must be provided");
@@ -76,18 +87,31 @@ export const submitApplication = onCall(async (request) => {
     throw new HttpsError("failed-precondition", "This form is no longer accepting applications");
   }
 
-  const applicantRef = await db
+  const applicantId = phoneDocId(phone);
+  const applicantRef = db
     .collection("Communities")
     .doc(communityJid)
     .collection("Applicants")
-    .add({
-      formId,
-      phone,
-      answers,
-      questions: form.questions,
-      status: "applied",
-      applied_at: FieldValue.serverTimestamp(),
-    });
+    .doc(applicantId);
+  const existing = await applicantRef.get();
+  const existingData = existing.data() as ApplicantDoc | undefined;
+  if (existingData?.status === "rejected") {
+    throw new HttpsError(
+      "failed-precondition",
+      "Your application was already reviewed and rejected. Contact the community moderators if you'd like it reconsidered."
+    );
+  }
 
-  return {success: true, applicantId: applicantRef.id};
+  // A resubmission fully replaces the prior attempt (including one that was
+  // mid-approval) — same phone number, so it's the same person re-applying.
+  await applicantRef.set({
+    formId,
+    phone,
+    answers,
+    questions: form.questions,
+    status: "applied",
+    applied_at: FieldValue.serverTimestamp(),
+  });
+
+  return {success: true, applicantId};
 });

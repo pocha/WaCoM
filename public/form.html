@@ -26,8 +26,10 @@
     </div>
 
     <div class="flex flex-col gap-1">
-      <label class="font-label-md text-label-md text-on-surface-variant">Phone Number *</label>
-      <input id="phoneInput" type="tel" required class="bg-surface-container-low border-b-2 border-transparent focus:border-primary focus:ring-0 rounded-lg p-3 outline-none" placeholder="+1 555 000 0000"/>
+      <label class="font-label-md text-label-md text-on-surface-variant">WhatsApp Number *</label>
+      <input id="phoneInput" type="tel" required class="bg-surface-container-low border-b-2 border-transparent focus:border-primary focus:ring-0 rounded-lg p-3 outline-none" placeholder="+14155552671"/>
+      <p class="text-muted-sm">Include your country code. Your join link is sent to this exact number on WhatsApp — double-check it before submitting.</p>
+      <p id="phoneError" class="hidden text-error text-sm"></p>
     </div>
 
     <div id="questionFields" class="flex flex-col gap-5"></div>
@@ -46,6 +48,7 @@
 <script type="module">
   import {db, call} from "/assets/wacom.js";
   import {doc, getDoc} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+  import {isValidPhoneNumber} from "https://cdn.jsdelivr.net/npm/libphonenumber-js@1.13.13/+esm";
 
   const params = new URLSearchParams(location.search);
   const communityJid = params.get('c');
@@ -102,7 +105,15 @@
     event.preventDefault();
     const submitBtn = document.getElementById('submitBtn');
     const submitMessage = document.getElementById('submitMessage');
+    const phoneError = document.getElementById('phoneError');
     const phone = document.getElementById('phoneInput').value.trim();
+
+    phoneError.classList.add('hidden');
+    if (!isValidPhoneNumber(phone)) {
+      phoneError.textContent = 'Enter a valid WhatsApp number with country code (e.g. +14155552671).';
+      phoneError.classList.remove('hidden');
+      return;
+    }
 
     const answers = {};
     questionFields.querySelectorAll('.question-answer').forEach((el) => {
