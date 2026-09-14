@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>WaCoM - WhatsApp Community Manager</title>
-<meta name="description" content="Gatekeep who joins your WhatsApp Community: collect applications with a custom form, review and approve from a dashboard, and let WaCoM handle the invite and join confirmation."/>
+<title>Watomod - Free WhatsApp Community Moderator</title>
+<meta name="description" content="Free WhatsApp Community moderation: gatekeep who joins with a custom application form, review and approve from a dashboard, and more moderation tools on the way."/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <script src="/assets/theme.js"></script>
@@ -13,11 +13,9 @@
 <body class="bg-surface text-on-surface font-body-md min-h-screen flex flex-col">
 
 <nav class="bg-surface border-b border-outline-variant shadow-sm flex justify-between items-center w-full px-gutter py-2 sticky top-0 z-50">
-  <a href="/" class="flex items-center gap-3">
-    <div class="w-10 h-10 rounded-lg bg-primary-container flex items-center justify-center text-on-primary-container">
-      <span class="material-symbols-outlined">groups</span>
-    </div>
-    <span class="font-headline-md text-headline-md font-bold text-primary">WaCoM</span>
+  <a href="/" class="flex items-center gap-2">
+    <img src="/assets/logo-icon.png" alt="Watomod logo" class="w-10 h-10 object-contain"/>
+    <span class="font-headline-md text-headline-md font-bold"><span class="text-primary">Wato</span><span class="text-on-surface">mod</span></span>
   </a>
   <a href="/dashboard.html" class="font-label-md text-label-md bg-primary-container text-on-primary-container px-6 py-2 rounded-xl font-bold hover:opacity-90 active:scale-95 transition-all">Open Dashboard</a>
 </nav>
@@ -26,14 +24,14 @@
 
   <section class="flex flex-col md:flex-row items-center px-gutter md:px-24 py-16 gap-10 overflow-hidden">
     <div class="w-full md:w-1/2 flex justify-center items-center">
-      <div class="relative w-full max-w-md aspect-square flex items-center justify-center">
-        <span class="material-symbols-outlined text-primary" style="font-size: 180px; font-variation-settings: 'FILL' 1;">verified_user</span>
-        <div class="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-gradient-to-tr from-primary-container/30 to-transparent rounded-full blur-3xl"></div>
+      <div class="relative w-full max-w-sm aspect-square flex items-center justify-center">
+        <img src="/assets/logo-icon.png" alt="Watomod" class="w-full h-full object-contain"/>
+        <div class="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[130%] h-[130%] bg-gradient-to-tr from-primary-container/30 to-transparent rounded-full blur-3xl"></div>
       </div>
     </div>
     <div class="w-full md:w-1/2 flex flex-col items-start gap-stack-gap">
       <h1 class="font-headline-lg text-3xl md:text-5xl font-extrabold text-on-surface leading-tight">
-        Manage who joins your <span class="text-primary">WhatsApp Community</span>
+        Free <span class="text-primary">WhatsApp Community</span> Moderator
       </h1>
       <p class="font-body-lg text-body-lg text-on-surface-variant max-w-md">
         Connect your WhatsApp Community, build a short application form, and review every request before anyone gets an invite. No more open-door groups full of spam and strangers.
@@ -46,46 +44,175 @@
     </div>
   </section>
 
-  <section class="px-gutter md:px-24 py-12 bg-surface" id="how-it-works">
+  <!-- Features -->
+  <section class="px-gutter md:px-24 py-12 bg-surface" id="features">
     <div class="text-center mb-10">
-      <h2 class="font-headline-lg text-headline-lg text-on-surface">Entry Gatekeeping, in 4 steps</h2>
-      <p class="text-on-surface-variant font-body-md">The first of many community-management tools coming to WaCoM</p>
+      <h2 class="font-headline-lg text-headline-lg text-on-surface">Moderation features</h2>
+      <p class="text-on-surface-variant font-body-md">Entry Gatekeeping is live today. More are on the way.</p>
     </div>
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 max-w-6xl mx-auto">
-      <div class="bg-surface-container-low p-6 rounded-xl border border-outline-variant flex flex-col gap-3">
-        <span class="bg-primary text-on-primary w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">1</span>
-        <h3 class="font-headline-md text-headline-md">Connect &amp; onboard</h3>
-        <p class="text-on-surface-variant font-body-md">Paste your Watobot API key and pick the Community you administer.</p>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+      <div class="bg-surface p-6 rounded-xl border border-primary whatsapp-shadow flex flex-col gap-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-primary-container flex items-center justify-center rounded-lg text-on-primary-container flex-shrink-0">
+              <span class="material-symbols-outlined text-[20px]">verified_user</span>
+            </div>
+            <h3 class="font-headline-md text-headline-md">Entry Gatekeeping</h3>
+          </div>
+          <span class="font-label-md text-label-md bg-primary text-on-primary px-3 py-1 rounded-full uppercase tracking-widest text-xs">Live</span>
+        </div>
+        <p class="text-on-surface-variant font-body-md">Collect applications with a custom form, review answers, and approve or reject before anyone gets an invite link.</p>
       </div>
+
       <div class="bg-surface-container-low p-6 rounded-xl border border-outline-variant flex flex-col gap-3">
-        <span class="bg-primary text-on-primary w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">2</span>
-        <h3 class="font-headline-md text-headline-md">Build a form</h3>
-        <p class="text-on-surface-variant font-body-md">Add your own questions. Share the generated link anywhere.</p>
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-surface-container flex items-center justify-center rounded-lg text-on-surface-variant flex-shrink-0">
+              <span class="material-symbols-outlined text-[20px]">gavel</span>
+            </div>
+            <h3 class="font-headline-md text-headline-md">Plain-text Rules</h3>
+          </div>
+          <span class="label-muted bg-surface-container px-3 py-1 rounded-full uppercase tracking-widest text-xs">Coming soon</span>
+        </div>
+        <p class="text-on-surface-variant font-body-md">Write your community rules in plain English and get notified the moment someone breaks one.</p>
       </div>
+
       <div class="bg-surface-container-low p-6 rounded-xl border border-outline-variant flex flex-col gap-3">
-        <span class="bg-primary text-on-primary w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">3</span>
-        <h3 class="font-headline-md text-headline-md">Review &amp; approve</h3>
-        <p class="text-on-surface-variant font-body-md">See every applicant's answers and approve or reject with one click.</p>
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-surface-container flex items-center justify-center rounded-lg text-on-surface-variant flex-shrink-0">
+              <span class="material-symbols-outlined text-[20px]">block</span>
+            </div>
+            <h3 class="font-headline-md text-headline-md">Auto-remove Repeat Offenders</h3>
+          </div>
+          <span class="label-muted bg-surface-container px-3 py-1 rounded-full uppercase tracking-widest text-xs">Coming soon</span>
+        </div>
+        <p class="text-on-surface-variant font-body-md">Members who keep breaking the rules get removed automatically — no manual policing required.</p>
       </div>
+
       <div class="bg-surface-container-low p-6 rounded-xl border border-outline-variant flex flex-col gap-3">
-        <span class="bg-primary text-on-primary w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">4</span>
-        <h3 class="font-headline-md text-headline-md">Invite &amp; confirm</h3>
-        <p class="text-on-surface-variant font-body-md">WaCoM sends the invite over WhatsApp and confirms once they've joined.</p>
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-surface-container flex items-center justify-center rounded-lg text-on-surface-variant flex-shrink-0">
+              <span class="material-symbols-outlined text-[20px]">cleaning_services</span>
+            </div>
+            <h3 class="font-headline-md text-headline-md">Auto-purge Silent Users</h3>
+          </div>
+          <span class="label-muted bg-surface-container px-3 py-1 rounded-full uppercase tracking-widest text-xs">Coming soon</span>
+        </div>
+        <p class="text-on-surface-variant font-body-md">Free up space for new members by automatically removing members who never participate.</p>
       </div>
     </div>
   </section>
 
-  <section class="px-gutter md:px-24 py-12 bg-surface-container-low">
-    <div class="max-w-4xl mx-auto text-center">
-      <h2 class="font-headline-lg text-headline-lg text-on-surface mb-3">Built on Watobot</h2>
-      <p class="text-on-surface-variant font-body-lg">WaCoM uses your own Watobot-connected WhatsApp account to send invites — no new number, no WhatsApp Business API, no approval process.</p>
+  <!-- Onboard in 3 steps -->
+  <section class="px-gutter md:px-24 py-12 bg-surface-container-low" id="onboarding">
+    <div class="text-center mb-12">
+      <h2 class="font-headline-lg text-headline-lg text-on-surface">Onboard in 3 steps</h2>
+      <p class="text-on-surface-variant font-body-md">From signup to your first application, in minutes</p>
+    </div>
+
+    <div class="max-w-5xl mx-auto flex flex-col gap-12">
+
+      <div class="flex flex-col md:flex-row items-center gap-8">
+        <div class="w-full md:w-1/2 flex justify-center">
+          <svg viewBox="0 0 320 240" class="w-full max-w-sm" role="img" aria-label="Copy your Watobot API key">
+            <rect x="10" y="10" width="300" height="220" rx="16" fill="#ffffff" stroke="#bbcbb9" stroke-width="2"/>
+            <circle cx="32" cy="30" r="4" fill="#bbcbb9"/>
+            <circle cx="46" cy="30" r="4" fill="#bbcbb9"/>
+            <circle cx="60" cy="30" r="4" fill="#bbcbb9"/>
+            <circle cx="160" cy="100" r="34" fill="#25d366"/>
+            <circle cx="150" cy="92" r="9" fill="#ffffff"/>
+            <rect x="156" y="98" width="34" height="10" rx="5" fill="#ffffff"/>
+            <rect x="172" y="104" width="10" height="14" rx="3" fill="#25d366"/>
+            <rect x="70" y="160" width="180" height="30" rx="8" fill="#eceef1" stroke="#bbcbb9" stroke-width="1.5"/>
+            <circle cx="88" cy="175" r="3" fill="#3c4a3d"/>
+            <circle cx="100" cy="175" r="3" fill="#3c4a3d"/>
+            <circle cx="112" cy="175" r="3" fill="#3c4a3d"/>
+            <circle cx="124" cy="175" r="3" fill="#3c4a3d"/>
+            <circle cx="136" cy="175" r="3" fill="#3c4a3d"/>
+            <circle cx="148" cy="175" r="3" fill="#3c4a3d"/>
+            <rect x="196" y="163" width="46" height="24" rx="12" fill="#006d2f"/>
+            <text x="219" y="178" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">Copy</text>
+          </svg>
+        </div>
+        <div class="w-full md:w-1/2 flex flex-col gap-2">
+          <span class="bg-primary text-on-primary w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">1</span>
+          <h3 class="font-headline-md text-headline-md">Sign up at Watobot &amp; copy your API key</h3>
+          <p class="text-on-surface-variant font-body-md">Create a free Watobot account, connect your WhatsApp, and generate a permanent API key from its dashboard.</p>
+        </div>
+      </div>
+
+      <div class="flex flex-col md:flex-row-reverse items-center gap-8">
+        <div class="w-full md:w-1/2 flex justify-center">
+          <svg viewBox="0 0 320 240" class="w-full max-w-sm" role="img" aria-label="Select communities to onboard">
+            <rect x="10" y="10" width="300" height="220" rx="16" fill="#ffffff" stroke="#bbcbb9" stroke-width="2"/>
+            <circle cx="32" cy="30" r="4" fill="#bbcbb9"/>
+            <circle cx="46" cy="30" r="4" fill="#bbcbb9"/>
+            <circle cx="60" cy="30" r="4" fill="#bbcbb9"/>
+
+            <circle cx="50" cy="76" r="16" fill="#76f6cd"/>
+            <rect x="78" y="68" width="150" height="16" rx="8" fill="#e0e3e6"/>
+            <circle cx="264" cy="76" r="14" fill="#006d2f"/>
+            <path d="M258 76 l4 5 l9 -10" stroke="#ffffff" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+
+            <circle cx="50" cy="120" r="16" fill="#5bc4f2"/>
+            <rect x="78" y="112" width="150" height="16" rx="8" fill="#e0e3e6"/>
+            <circle cx="264" cy="120" r="14" fill="#006d2f"/>
+            <path d="M258 120 l4 5 l9 -10" stroke="#ffffff" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+
+            <circle cx="50" cy="164" r="16" fill="#e0e3e6"/>
+            <rect x="78" y="156" width="150" height="16" rx="8" fill="#eceef1"/>
+            <circle cx="264" cy="164" r="14" fill="none" stroke="#bbcbb9" stroke-width="2.5"/>
+          </svg>
+        </div>
+        <div class="w-full md:w-1/2 flex flex-col gap-2">
+          <span class="bg-primary text-on-primary w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">2</span>
+          <h3 class="font-headline-md text-headline-md">Select Communities to onboard</h3>
+          <p class="text-on-surface-variant font-body-md">Watomod shows every WhatsApp Community you administer — pick the ones you want to start gatekeeping.</p>
+        </div>
+      </div>
+
+      <div class="flex flex-col md:flex-row items-center gap-8">
+        <div class="w-full md:w-1/2 flex justify-center">
+          <svg viewBox="0 0 320 240" class="w-full max-w-sm" role="img" aria-label="Create a questionnaire and share the unique URL">
+            <rect x="10" y="10" width="300" height="220" rx="16" fill="#ffffff" stroke="#bbcbb9" stroke-width="2"/>
+            <circle cx="32" cy="30" r="4" fill="#bbcbb9"/>
+            <circle cx="46" cy="30" r="4" fill="#bbcbb9"/>
+            <circle cx="60" cy="30" r="4" fill="#bbcbb9"/>
+
+            <rect x="40" y="56" width="18" height="18" rx="4" fill="#25d366"/>
+            <path d="M45 65 l4 4 l8 -8" stroke="#ffffff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            <rect x="70" y="59" width="130" height="12" rx="6" fill="#e0e3e6"/>
+
+            <rect x="40" y="88" width="18" height="18" rx="4" fill="#25d366"/>
+            <path d="M45 97 l4 4 l8 -8" stroke="#ffffff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            <rect x="70" y="91" width="110" height="12" rx="6" fill="#e0e3e6"/>
+
+            <rect x="40" y="120" width="18" height="18" rx="4" fill="#eceef1" stroke="#bbcbb9" stroke-width="2"/>
+            <rect x="70" y="123" width="140" height="12" rx="6" fill="#eceef1"/>
+
+            <rect x="40" y="168" width="240" height="36" rx="18" fill="#f2f4f7" stroke="#bbcbb9" stroke-width="1.5"/>
+            <path d="M58 186 h14 M65 179 l7 7 l-7 7" stroke="#006686" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            <text x="90" y="191" font-family="Inter, sans-serif" font-size="12" fill="#3c4a3d">watomod.app/f/9k2Lp</text>
+            <circle cx="256" cy="186" r="14" fill="#006d2f"/>
+            <path d="M250 186 l12 -7 l-4 7 l4 7 z" fill="#ffffff"/>
+          </svg>
+        </div>
+        <div class="w-full md:w-1/2 flex flex-col gap-2">
+          <span class="bg-primary text-on-primary w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">3</span>
+          <h3 class="font-headline-md text-headline-md">Create a questionnaire &amp; share the link</h3>
+          <p class="text-on-surface-variant font-body-md">Add your own questions per Community, get a unique Watomod URL, and send it out anywhere.</p>
+        </div>
+      </div>
+
     </div>
   </section>
 
 </main>
 
 <footer class="px-gutter md:px-24 py-8 border-t border-outline-variant text-center text-on-surface-variant font-body-md text-sm">
-  WaCoM — WhatsApp Community Manager
+  Watomod — Free WhatsApp Community Moderator
 </footer>
 
 </body>
