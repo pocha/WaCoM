@@ -145,7 +145,7 @@
         btn.textContent = 'Onboarding…';
         try {
           await onboardCommunity({communityJid: community.id});
-          await loadCommunities();
+          location.href = `/community.html?id=${encodeURIComponent(community.id)}`;
         } catch (err) {
           btn.disabled = false;
           btn.textContent = 'Onboard';

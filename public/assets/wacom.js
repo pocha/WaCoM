@@ -39,8 +39,15 @@ export function call(name) {
   return (data) => fn(data).then((res) => res.data);
 }
 
+// onAuthStateChanged can fire once with a premature/unsettled state (e.g.
+// null) before the SDK finishes restoring a persisted session from
+// IndexedDB, then fire again with the real state — a page that reacts to
+// that first null by redirecting away never sees the second, correct
+// callback. authStateReady() waits for the SDK's initial determination to
+// settle before we ever start listening, so the first callback here is
+// always the real one.
 export function onAuthReady(callback) {
-  return onAuthStateChanged(auth, callback);
+  auth.authStateReady().then(() => onAuthStateChanged(auth, callback));
 }
 
 export async function signInWithApiKey(apiKey) {
