@@ -1,5 +1,8 @@
 node_modules/
 functions/lib/
+# Built from views/pages/ + views/partials/ by scripts/build-pages.js
+public/dashboard.html
+public/community/gate-keeping.html
 .firebase/
 firebase-debug.log
 firebase-debug.*.log

@@ -23,6 +23,7 @@ export interface CommunityParticipant {
 export interface CommunityInfo {
   id: string;
   subject: string;
+  pictureUrl: string | null;
   participants: CommunityParticipant[];
 }
 

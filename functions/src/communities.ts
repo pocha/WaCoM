@@ -47,6 +47,7 @@ export const onboardCommunity = onCall(async (request) => {
   await db.collection("Communities").doc(communityJid).set(
     {
       name: info.subject,
+      pictureUrl: info.pictureUrl,
       mods: FieldValue.arrayUnion(uid),
       onboarded_at: FieldValue.serverTimestamp(),
     },

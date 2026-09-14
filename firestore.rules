@@ -19,7 +19,14 @@ service cloud.firestore {
       // (creating/updating this doc, adding to `mods`) happens only via
       // the onboardCommunity Cloud Function, which verifies admin status
       // against Watobot before writing — never a direct client write.
-      allow read: if isMod(communityId);
+      //
+      // Checked directly against resource.data (not the isMod() helper's
+      // get() indirection) since the dashboard/sidebar query this
+      // collection with where('mods', 'array-contains', uid) — Firestore
+      // can only allow a list/query request when the rule is a direct
+      // comparison against resource.data matching the query's own filter,
+      // not one routed through a get() call.
+      allow read: if request.auth != null && request.auth.uid in resource.data.mods;
       allow write: if false;
 
       match /Forms/{formId} {

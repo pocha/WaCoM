@@ -12,9 +12,8 @@
 <body class="bg-surface text-on-surface font-body-md min-h-screen flex flex-col items-center justify-center px-4 py-10">
 
 <div class="w-full max-w-lg">
-  <div class="flex items-center gap-3 justify-center mb-8">
-    <img src="/assets/logo-icon.png" alt="Watomod logo" class="w-10 h-10 object-contain"/>
-    <span class="font-headline-md text-headline-md font-bold"><span class="text-primary">Wato</span><span class="text-on-surface">mod</span></span>
+  <div class="flex items-center justify-center mb-8">
+    <img id="brandLogo" src="/assets/logo-icon.png" alt="" class="w-16 h-16 rounded-full object-cover"/>
   </div>
 
   <div id="loadingState" class="text-center text-on-surface-variant font-body-md">Loading…</div>
@@ -80,6 +79,9 @@
     }
     const form = snap.data();
     document.getElementById('communityTitle').textContent = `Join ${form.communityName}`;
+    if (form.communityPictureUrl) {
+      document.getElementById('brandLogo').src = form.communityPictureUrl;
+    }
     form.questions.forEach((q) => questionFields.appendChild(renderQuestionField(q)));
 
     loadingState.classList.add('hidden');

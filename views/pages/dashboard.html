@@ -1,0 +1,176 @@
+<!--#var title="Dashboard - Watomod"-->
+<!--#include partial="head-nav"-->
+      <h1 class="font-headline-lg text-headline-lg text-on-surface mb-1">Your Communities</h1>
+      <p class="text-on-surface-variant font-body-md mb-6">Communities you own/manage</p>
+
+      <div id="onboardedLoading" class="text-on-surface-variant font-body-md">Loading…</div>
+      <div id="onboardedEmpty" class="hidden text-on-surface-variant font-body-md">You haven't onboarded any communities yet.</div>
+      <div id="onboardedList" class="flex flex-col gap-4 mb-10"></div>
+
+      <div id="loadAllSection" class="border-t border-outline-variant pt-6">
+        <button id="loadAllBtn" class="font-label-md text-label-md border border-primary text-primary px-6 py-3 rounded-xl font-bold hover:bg-primary-container/20 transition-all">Load All My Communities</button>
+        <p class="text-muted-sm mt-2">Fetches every WhatsApp Community you administer, including ones not yet onboarded here. Takes a few seconds.</p>
+      </div>
+
+      <div id="allLoading" class="hidden text-on-surface-variant font-body-md mt-6">Loading all your communities…</div>
+      <div id="allErrorState" class="hidden text-error font-body-md mt-6"></div>
+      <div id="allList" class="flex flex-col gap-4 mt-6"></div>
+
+<!--#include partial="footer"-->
+<!-- Login Modal -->
+<div class="fixed inset-0 z-[100] hidden flex items-center justify-center px-4" id="loginModal">
+  <div class="modal-overlay absolute inset-0"></div>
+  <div class="bg-surface-container-lowest w-full max-w-md rounded-xl p-8 whatsapp-shadow relative z-10 border border-outline-variant">
+    <h3 class="font-headline-md text-headline-md text-on-surface mb-2">Connect Watobot</h3>
+    <p class="text-on-surface-variant font-body-md mb-6">Paste your <strong>permanent</strong> Watobot API key to sign in. Generate one from your <a href="https://watobot.xyz" target="_blank" rel="noopener" class="text-primary underline">Watobot dashboard</a>.</p>
+    <form id="apiKeyForm" class="flex flex-col gap-4">
+      <div class="flex flex-col gap-1">
+        <label class="font-label-md text-label-md text-on-surface-variant">Watobot API Key</label>
+        <input id="apiKeyInput" class="bg-surface-container-low border-b-2 border-transparent focus:border-primary focus:ring-0 rounded-lg p-3 transition-all outline-none font-mono text-sm" placeholder="64-character key" required/>
+      </div>
+      <div id="loginMessage" class="min-h-[20px] text-sm"></div>
+      <button id="loginSubmitBtn" type="submit" class="bg-primary-container text-on-primary-container font-bold py-4 rounded-xl hover:opacity-90 active:scale-95 transition-all">Sign In</button>
+    </form>
+  </div>
+</div>
+
+<script type="module">
+  import {onAuthReady, signInWithApiKey, call, db} from "/assets/wacom.js";
+  import {collection, query, where, onSnapshot} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+  const loginModal = document.getElementById('loginModal');
+  const apiKeyForm = document.getElementById('apiKeyForm');
+  const apiKeyInput = document.getElementById('apiKeyInput');
+  const loginSubmitBtn = document.getElementById('loginSubmitBtn');
+  const loginMessage = document.getElementById('loginMessage');
+
+  const onboardedLoading = document.getElementById('onboardedLoading');
+  const onboardedEmpty = document.getElementById('onboardedEmpty');
+  const onboardedList = document.getElementById('onboardedList');
+
+  const loadAllBtn = document.getElementById('loadAllBtn');
+  const allLoading = document.getElementById('allLoading');
+  const allErrorState = document.getElementById('allErrorState');
+  const allList = document.getElementById('allList');
+
+  const listMyCommunities = call('listMyCommunities');
+  const onboardCommunity = call('onboardCommunity');
+
+  let onboardedIds = new Set();
+
+  onAuthReady((user) => {
+    if (!user) {
+      loginModal.classList.remove('hidden');
+      return;
+    }
+    loginModal.classList.add('hidden');
+    listenOnboardedCommunities(user.uid);
+  });
+
+  apiKeyForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const apiKey = apiKeyInput.value.trim();
+    if (!apiKey) return;
+    loginSubmitBtn.disabled = true;
+    loginSubmitBtn.textContent = 'Signing in…';
+    loginMessage.textContent = '';
+    loginMessage.className = 'min-h-[20px] text-sm';
+    try {
+      await signInWithApiKey(apiKey);
+    } catch (err) {
+      loginMessage.textContent = err.message || 'Sign in failed. Check your API key and try again.';
+      loginMessage.className = 'min-h-[20px] text-sm text-error';
+    } finally {
+      loginSubmitBtn.disabled = false;
+      loginSubmitBtn.textContent = 'Sign In';
+    }
+  });
+
+  function listenOnboardedCommunities(uid) {
+    const q = query(collection(db, 'Communities'), where('mods', 'array-contains', uid));
+    onSnapshot(q, (snap) => {
+      onboardedLoading.classList.add('hidden');
+      onboardedIds = new Set(snap.docs.map((d) => d.id));
+      onboardedList.innerHTML = '';
+      if (snap.empty) {
+        onboardedEmpty.classList.remove('hidden');
+        return;
+      }
+      onboardedEmpty.classList.add('hidden');
+      snap.forEach((doc) => {
+        onboardedList.appendChild(renderOnboardedCard({id: doc.id, ...doc.data()}));
+      });
+      renderAllList(lastAllCommunities);
+    });
+  }
+
+  function renderOnboardedCard(community) {
+    const row = document.createElement('div');
+    row.className = 'card p-6 flex flex-col items-center text-center gap-3';
+    row.innerHTML = `
+      <img src="${community.pictureUrl || '/assets/logo-icon.png'}" class="w-14 h-14 rounded-full object-cover"/>
+      <p class="font-headline-md text-headline-md">${escapeHtml(community.name)}</p>
+      <a href="/community/${encodeURIComponent(community.id)}/gate-keeping" class="font-label-md text-label-md bg-primary-container text-on-primary-container px-5 py-2 rounded-xl font-bold hover:opacity-90 transition-all">Manage</a>
+    `;
+    return row;
+  }
+
+  let lastAllCommunities = [];
+
+  loadAllBtn.addEventListener('click', async () => {
+    loadAllBtn.disabled = true;
+    allLoading.classList.remove('hidden');
+    allErrorState.classList.add('hidden');
+    allList.innerHTML = '';
+    try {
+      const {communities} = await listMyCommunities();
+      lastAllCommunities = communities;
+      renderAllList(communities);
+    } catch (err) {
+      allErrorState.textContent = err.message || 'Failed to load communities.';
+      allErrorState.classList.remove('hidden');
+    } finally {
+      allLoading.classList.add('hidden');
+      loadAllBtn.disabled = false;
+    }
+  });
+
+  function renderAllList(communities) {
+    const notOnboarded = communities.filter((c) => !onboardedIds.has(c.id));
+    allList.innerHTML = '';
+    notOnboarded.forEach((c) => allList.appendChild(renderOnboardCard(c)));
+  }
+
+  function renderOnboardCard(community) {
+    const row = document.createElement('div');
+    row.className = 'card p-6 flex flex-col items-center text-center gap-3';
+    const info = document.createElement('div');
+    info.innerHTML = `<p class="font-headline-md text-headline-md">${escapeHtml(community.name)}</p><p class="text-muted-sm">Not onboarded yet</p>`;
+    row.appendChild(info);
+    const btn = document.createElement('button');
+    btn.className = 'font-label-md text-label-md border border-primary text-primary px-5 py-2 rounded-xl font-bold hover:bg-primary-container/20 transition-all';
+    btn.textContent = 'Onboard';
+    btn.addEventListener('click', async () => {
+      btn.disabled = true;
+      btn.textContent = 'Onboarding…';
+      try {
+        await onboardCommunity({communityJid: community.id});
+        location.href = `/community/${encodeURIComponent(community.id)}/gate-keeping`;
+      } catch (err) {
+        btn.disabled = false;
+        btn.textContent = 'Onboard';
+        alert(err.message || 'Onboarding failed — are you an admin of this community?');
+      }
+    });
+    row.appendChild(btn);
+    return row;
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+</script>
+</body>
+</html>

@@ -38,6 +38,7 @@ export const createForm = onCall(async (request) => {
   const newFormRef = formsRef.doc();
   batch.set(newFormRef, {
     communityName: community.name,
+    communityPictureUrl: community.pictureUrl,
     questions: cleanQuestions,
     active: true,
     created_by: uid,

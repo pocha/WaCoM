@@ -1,0 +1,89 @@
+<!doctype html>
+<html class="light" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>{{title}}</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="/assets/theme.js"></script>
+<link rel="stylesheet" href="/assets/theme.css"/>
+</head>
+<body class="bg-surface text-on-surface font-body-md overflow-hidden">
+<header class="flex justify-between items-center w-full px-gutter py-2 sticky top-0 z-50 bg-surface border-b border-outline-variant shadow-sm h-16">
+  <a href="/" class="flex items-center gap-2">
+    <img src="/assets/logo-icon.png" alt="Watomod logo" class="w-9 h-9 object-contain"/>
+    <span class="font-headline-md text-headline-md font-bold"><span class="text-primary">Wato</span><span class="text-on-surface">mod</span></span>
+  </a>
+  <button id="logout-btn" class="flex items-center gap-2 text-error hover:bg-error/10 px-3 py-2 rounded-xl transition-all font-label-md">
+    <span class="material-symbols-outlined text-[20px]">logout</span>
+    <span class="hidden md:inline">Logout</span>
+  </button>
+</header>
+<div class="flex h-[calc(100vh-64px)] overflow-hidden">
+  <aside id="app-nav" class="w-16 lg:w-64 flex-shrink-0 border-r border-outline-variant bg-surface-container-lowest flex flex-col gap-1 py-4 px-2 overflow-y-auto">
+    <a href="/dashboard" data-nav="dashboard" title="Dashboard" class="flex items-center gap-3 px-2 lg:px-3 py-2.5 rounded-lg font-label-md text-sm text-on-surface-variant hover:bg-surface-container transition-colors justify-center lg:justify-start">
+      <span class="material-symbols-outlined text-[22px] flex-shrink-0">dashboard</span>
+      <span class="hidden lg:inline truncate">Dashboard</span>
+    </a>
+    <div class="mt-4 mb-1 px-2 lg:px-3">
+      <span class="hidden lg:block label-muted">Your Communities</span>
+    </div>
+    <div id="sidebar-communities" class="flex flex-col gap-1">
+      <div class="px-2 lg:px-3 py-2 text-center lg:text-left">
+        <span class="hidden lg:inline text-muted-sm">Loading…</span>
+      </div>
+    </div>
+  </aside>
+  <script type="module">
+    import {db, onAuthReady, logOut} from "/assets/wacom.js";
+    import {collection, query, where, onSnapshot} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+    document.getElementById('logout-btn').addEventListener('click', () => logOut());
+
+    function highlightActiveNav() {
+      document.querySelectorAll('#app-nav a[data-nav]').forEach((link) => {
+        const isActive = link.dataset.nav === 'dashboard'
+          ? location.pathname === '/dashboard'
+          : location.pathname.startsWith(link.getAttribute('href'));
+        link.classList.toggle('bg-primary-container', isActive);
+        link.classList.toggle('text-on-primary-container', isActive);
+        link.classList.toggle('font-bold', isActive);
+        link.classList.toggle('text-on-surface-variant', !isActive);
+      });
+    }
+
+    function renderSidebarCommunities(communities) {
+      const container = document.getElementById('sidebar-communities');
+      if (!communities.length) {
+        container.innerHTML = '<div class="px-2 lg:px-3 py-2 text-center lg:text-left"><span class="hidden lg:inline text-muted-sm">None yet</span></div>';
+        return;
+      }
+      container.innerHTML = '';
+      communities.forEach((c) => {
+        const a = document.createElement('a');
+        a.href = `/community/${encodeURIComponent(c.id)}/gate-keeping`;
+        a.dataset.nav = a.href.replace(location.origin, '');
+        a.title = c.name;
+        a.className = 'flex items-center gap-3 px-2 lg:px-3 py-2.5 rounded-lg font-label-md text-sm text-on-surface-variant hover:bg-surface-container transition-colors justify-center lg:justify-start';
+        a.innerHTML = `
+          <img src="${c.pictureUrl || '/assets/logo-icon.png'}" class="w-6 h-6 rounded-full object-cover flex-shrink-0" alt=""/>
+          <span class="hidden lg:inline truncate">${c.name}</span>
+        `;
+        container.appendChild(a);
+      });
+      highlightActiveNav();
+    }
+
+    onAuthReady((user) => {
+      highlightActiveNav();
+      if (!user) return;
+      const q = query(collection(db, 'Communities'), where('mods', 'array-contains', user.uid));
+      onSnapshot(q, (snap) => {
+        const communities = snap.docs.map((d) => ({id: d.id, name: d.data().name, pictureUrl: d.data().pictureUrl}));
+        renderSidebarCommunities(communities);
+      });
+    });
+  </script>
+  <main class="flex-1 overflow-y-auto custom-scrollbar p-6 bg-background flex flex-col">
+    <div class="max-w-5xl mx-auto space-y-stack-gap flex-1 w-full">

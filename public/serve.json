@@ -1,0 +1,5 @@
+{
+  "rewrites": [
+    {"source": "/community/:id/gate-keeping", "destination": "/community/gate-keeping.html"}
+  ]
+}

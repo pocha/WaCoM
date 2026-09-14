@@ -8,6 +8,7 @@ export interface ModDoc {
 
 export interface CommunityDoc {
   name: string;
+  pictureUrl: string | null;
   mods: string[];
   onboarded_at: FirebaseFirestore.Timestamp;
 }
@@ -20,6 +21,7 @@ export interface FormQuestion {
 
 export interface FormDoc {
   communityName: string;
+  communityPictureUrl: string | null;
   questions: FormQuestion[];
   active: boolean;
   created_by: string;
