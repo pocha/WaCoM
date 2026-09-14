@@ -22,7 +22,7 @@
 <main class="flex-1 w-full px-gutter md:px-24 py-10">
   <div class="max-w-3xl mx-auto">
     <h1 class="font-headline-lg text-headline-lg text-on-surface mb-1">Your Communities</h1>
-    <p class="text-on-surface-variant font-body-md mb-8">Communities your WhatsApp account participates in, via Watobot.</p>
+    <p class="text-on-surface-variant font-body-md mb-8">Communities you own/manage</p>
 
     <div id="loadingState" class="text-on-surface-variant font-body-md">Loading…</div>
     <div id="emptyState" class="hidden text-on-surface-variant font-body-md">No communities found for this WhatsApp account.</div>
@@ -120,7 +120,7 @@
 
   function renderCommunityRow(community) {
     const row = document.createElement('div');
-    row.className = 'card p-5 flex items-center justify-between gap-4';
+    row.className = 'card p-6 flex flex-col items-center text-center gap-3';
 
     const info = document.createElement('div');
     info.innerHTML = `

@@ -55,7 +55,7 @@ export async function getWhatsappStatus(apiKey: string): Promise<WhatsappStatus>
 }
 
 export async function listCommunities(apiKey: string): Promise<CommunitySummary[]> {
-  const {communities} = await watobotFetch(apiKey, "/api/whatsapp/communities");
+  const {communities} = await watobotFetch(apiKey, "/api/whatsapp/communities?adminOnly=true");
   return communities;
 }
 

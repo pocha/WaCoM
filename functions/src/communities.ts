@@ -5,10 +5,9 @@ import {getModApiKey, requireUid} from "./modAccess";
 import {getCommunityInfo, listCommunities, participantMatchesPhone} from "./watobotClient";
 import {ModDoc} from "./types";
 
-// Lists every community the mod's WhatsApp account participates in
-// (per Watobot), annotated with whether WaCoM already has it onboarded.
-// Admin-of-community isn't checked here — only at onboarding time, in
-// onboardCommunity below — so this stays a single Watobot call.
+// Watobot's adminOnly filter already narrows this to communities the mod
+// administers; onboardCommunity still re-verifies admin status itself
+// before writing, since this list is just what the UI shows.
 export const listMyCommunities = onCall(async (request) => {
   const uid = requireUid(request.auth);
   const apiKey = await getModApiKey(uid);
