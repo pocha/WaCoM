@@ -8,7 +8,11 @@ jobs:
   deploy-pages:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -16,11 +20,12 @@ jobs:
           node-version: 20
       - name: Build templated pages (dashboard, community)
         run: node scripts/build-pages.js
-      - name: Deploy public/ to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./public
+          path: ./public
+      - uses: actions/deploy-pages@v4
+        id: deployment
 
   deploy-firebase:
     runs-on: ubuntu-latest
