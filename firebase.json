@@ -24,13 +24,14 @@
       "port": 9099
     },
     "functions": {
-      "port": 5001
+      "port": 5501
     },
     "firestore": {
       "port": 8080
     },
     "ui": {
-      "enabled": true
+      "enabled": true,
+      "port": 4700
     },
     "singleProjectMode": true
   }

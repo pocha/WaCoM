@@ -29,12 +29,14 @@ export const db = getFirestore(app);
 export const functions = getFunctions(app, "asia-south1");
 
 // `npm start` serves public/ on localhost — point at the local emulator
-// suite (firebase.json: auth 9099, functions 5001, firestore 8080) instead
-// of the real project whenever running from there.
+// suite (firebase.json: auth 9099, functions 5501, firestore 8080) instead
+// of the real project whenever running from there. Functions runs on 5501,
+// not the Firebase default 5001, because a local Watobot checkout also runs
+// its own functions emulator on 5001 — the two need to run side by side.
 if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
   connectAuthEmulator(auth, "http://localhost:9099", {disableWarnings: true});
   connectFirestoreEmulator(db, "localhost", 8080);
-  connectFunctionsEmulator(functions, "localhost", 5001);
+  connectFunctionsEmulator(functions, "localhost", 5501);
 }
 
 export function call(name) {

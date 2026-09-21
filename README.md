@@ -124,11 +124,18 @@ npm start
 
 `npm start` builds `views/pages/` → `public/` and the Functions once
 (`prestart`), then runs the Firebase Emulator Suite (Firestore on :8080,
-Functions on :5001, Auth on :9099, emulator UI on :4000) alongside a static
+Functions on :5501, Auth on :9099, emulator UI on :4400) alongside a static
 server for `public/` on **http://localhost:5002**. `public/assets/wacom.js`
 auto-detects `localhost` and points the Firebase client SDK at the
 emulators instead of the real project, so no `firebase-config.js` edits are
 needed for local testing.
+
+Functions runs on :5501 instead of the Firebase default :5001, and the
+emulator UI on :4400 instead of :4000, because a local Watobot checkout
+(needed alongside this repo for end-to-end testing — see below) runs its
+own Functions emulator on the default :5001. Both repos' Firestore/Auth
+emulators stay on the defaults since Watobot's `npm start` only ever
+starts `--only functions`.
 
 Before running, point both of these at your local Watobot instance (same
 value in each — one is read by the Functions emulator, the other by the
