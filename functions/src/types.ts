@@ -19,6 +19,10 @@ export interface CommunityDoc {
   // cached value instead of calling Watobot again.
   inviteLink: string | null;
   mods: string[];
+  // Set once, by whichever mod's onboarding write first creates this doc —
+  // later mods joining an already-onboarded community must omit this field
+  // from their merge write so it isn't overwritten with their own name.
+  onboarded_by_name: string;
   onboarded_at: FirebaseFirestore.Timestamp;
 }
 

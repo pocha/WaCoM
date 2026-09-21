@@ -39,7 +39,7 @@
 </div>
 
 <script type="module">
-  import {auth, onAuthReady, signInWithApiKey, call, db} from "/assets/wacom.js";
+  import {auth, onAuthReady, signInWithApiKey, call, db, getOwnMod} from "/assets/wacom.js";
   import {
     collection, doc, query, where, onSnapshot, setDoc, arrayUnion, serverTimestamp,
   } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
@@ -152,26 +152,37 @@
     const row = document.createElement('div');
     row.className = 'card p-6 flex flex-col items-center text-center gap-3';
     const info = document.createElement('div');
-    info.innerHTML = `<p class="font-headline-md text-headline-md">${escapeHtml(community.name)}</p><p class="text-muted-sm">Not onboarded yet</p>`;
+    const statusLabel = community.onboarded
+      ? `Onboarded by ${escapeHtml(community.onboardedByName || 'another mod')}`
+      : 'Not onboarded yet';
+    info.innerHTML = `<p class="font-headline-md text-headline-md">${escapeHtml(community.name)}</p><p class="text-muted-sm">${statusLabel}</p>`;
     row.appendChild(info);
     const btn = document.createElement('button');
     btn.className = 'font-label-md text-label-md border border-primary text-primary px-5 py-2 rounded-xl font-bold hover:bg-primary-container/20 transition-all';
-    btn.textContent = 'Onboard';
+    btn.textContent = community.onboarded ? 'Join as mod' : 'Onboard';
     btn.addEventListener('click', async () => {
       btn.disabled = true;
-      btn.textContent = 'Onboarding…';
+      btn.textContent = community.onboarded ? 'Joining…' : 'Onboarding…';
       try {
-        await setDoc(doc(db, 'Communities', community.id), {
+        const payload = {
           name: community.name,
           pictureUrl: community.pictureUrl ?? null,
           inviteLink: community.inviteLink ?? null,
           mods: arrayUnion(auth.currentUser.uid),
           onboarded_at: serverTimestamp(),
-        }, {merge: true});
+        };
+        // Only stamp onboarded_by_name on the write that actually creates
+        // this doc — a mod joining an already-onboarded community must not
+        // overwrite the name of whoever onboarded it first.
+        if (!community.onboarded) {
+          const mod = await getOwnMod();
+          payload.onboarded_by_name = mod.name;
+        }
+        await setDoc(doc(db, 'Communities', community.id), payload, {merge: true});
         location.href = `/community/${encodeURIComponent(community.id)}/gate-keeping`;
       } catch (err) {
         btn.disabled = false;
-        btn.textContent = 'Onboard';
+        btn.textContent = community.onboarded ? 'Join as mod' : 'Onboard';
         alert(err.message || 'Onboarding failed — are you an admin of this community?');
       }
     });

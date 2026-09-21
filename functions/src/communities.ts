@@ -2,6 +2,7 @@ import {onCall} from "firebase-functions/v2/https";
 import {db} from "./admin";
 import {getModApiKey, requireUid} from "./modAccess";
 import {getCommunityInfo, listCommunities} from "./watobotClient";
+import {CommunityDoc} from "./types";
 
 // The only server step left in onboarding: Watobot is the sole source of
 // truth for "is this account actually an admin of this WhatsApp Community",
@@ -36,11 +37,13 @@ export const listMyCommunities = onCall(async (request) => {
           inviteLink: info.inviteLink,
         });
       }
+      const existing = snap.data() as CommunityDoc | undefined;
       return {
         ...c,
         pictureUrl: info.pictureUrl,
         inviteLink: info.inviteLink,
         onboarded: snap.exists,
+        onboardedByName: existing?.onboarded_by_name ?? null,
       };
     })
   );
