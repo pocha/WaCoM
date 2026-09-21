@@ -45,7 +45,7 @@
     writeBatch, updateDoc, serverTimestamp,
   } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
-  const communityJid = decodeURIComponent(location.pathname.split('/')[2] || '');
+  const communityJid = new URLSearchParams(location.search).get('communityId') || '';
   if (!communityJid) {
     location.href = '/dashboard';
   }
@@ -116,7 +116,7 @@
   }
 
   function showFormLink(formId) {
-    const link = `${location.origin}/form?c=${encodeURIComponent(communityJid)}&f=${encodeURIComponent(formId)}`;
+    const link = `${location.origin}/community/form?c=${encodeURIComponent(communityJid)}&f=${encodeURIComponent(formId)}`;
     const previewLink = document.getElementById('previewFormLink');
     previewLink.href = link;
     previewLink.classList.remove('hidden');

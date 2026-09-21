@@ -42,10 +42,14 @@
     document.getElementById('logout-btn').addEventListener('click', () => logOut());
 
     function highlightActiveNav() {
+      // Every community page shares the same pathname (/community/gate-keeping.html)
+      // and is distinguished only by ?communityId=..., so match against the
+      // full path+query, not just location.pathname.
+      const current = location.pathname + location.search;
       document.querySelectorAll('#app-nav a[data-nav]').forEach((link) => {
         const isActive = link.dataset.nav === 'dashboard'
           ? location.pathname === '/dashboard'
-          : location.pathname.startsWith(link.getAttribute('href'));
+          : current.startsWith(link.getAttribute('href'));
         link.classList.toggle('bg-primary-container', isActive);
         link.classList.toggle('text-on-primary-container', isActive);
         link.classList.toggle('font-bold', isActive);
@@ -62,7 +66,7 @@
       container.innerHTML = '';
       communities.forEach((c) => {
         const a = document.createElement('a');
-        a.href = `/community/${encodeURIComponent(c.id)}/gate-keeping`;
+        a.href = `/community/gate-keeping.html?communityId=${encodeURIComponent(c.id)}`;
         a.dataset.nav = a.href.replace(location.origin, '');
         a.title = c.name;
         a.className = 'flex items-center gap-3 px-2 lg:px-3 py-2.5 rounded-lg font-label-md text-sm text-on-surface-variant hover:bg-surface-container transition-colors justify-center lg:justify-start';

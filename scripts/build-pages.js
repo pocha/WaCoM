@@ -20,6 +20,7 @@ const FUNCTIONS_DIR = path.join(ROOT_DIR, "functions");
 const PAGE_MAP = {
   "dashboard.html": "dashboard.html",
   "community-gate-keeping.html": "community/gate-keeping.html",
+  "community-form.html": "community/form.html",
 };
 
 const VAR_RE = /^<!--#var\s+([a-zA-Z0-9_]+)="([^"]*)"-->\n?/;

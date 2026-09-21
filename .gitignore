@@ -3,6 +3,7 @@ functions/lib/
 # Built from views/pages/ + views/partials/ by scripts/build-pages.js
 public/dashboard.html
 public/community/gate-keeping.html
+public/community/form.html
 # Generated from functions/.env(.local)'s WATOBOT_API_BASE by the same script
 public/assets/watobot-config.js
 .firebase/
@@ -13,3 +14,4 @@ pubsub-debug.log
 ui-debug.log
 *.local
 wacom-app-firebase-adminsdk-fbsvc-2a8e266701.json
+.claude/

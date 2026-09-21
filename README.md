@@ -8,12 +8,18 @@ hourly job confirms once the applicant has actually joined.
 ## Architecture
 
 - `views/pages/` + `views/partials/` — page sources, expanded by
-  `scripts/build-pages.js` into `public/dashboard.html` and
-  `public/community/gate-keeping.html` (both gitignored — build output, not
-  source). `index.html` and `form.html` in `public/` are plain, unbuilt
-  static files. `public/serve.json` rewrites `/community/:id/gate-keeping`
-  to that one built file (Community tabs: Gatekeeping live, Inactive
-  Members disabled placeholder).
+  `scripts/build-pages.js` into `public/dashboard.html`,
+  `public/community/gate-keeping.html`, and `public/community/form.html`
+  (all three gitignored — build output, not source). `index.html` in
+  `public/` is the only plain, unbuilt static file (a marketing page with
+  no shared nav/auth logic to template). Per-community pages take
+  `?communityId=`/`?c=`/`?f=` query params rather than path segments
+  (`/community/gate-keeping.html?communityId=<jid>`,
+  `/community/form?c=<jid>&f=<formId>`) — GitHub Pages has no path-rewrite
+  support, so a `/community/<jid>/gate-keeping`-style pretty URL 404s in
+  production, even though a `serve.json` rewrite could make it work under
+  local dev's `serve`. (Community tabs: Gatekeeping live, Inactive
+  Members disabled placeholder.)
 - `public/assets/` — shared client code: `wacom.js` (Firebase init, auth
   helpers, direct-to-Watobot fetch helper), `firebase-config.js` (public,
   non-secret Firebase web app config, committed), `watobot-config.js`

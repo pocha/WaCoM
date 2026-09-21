@@ -117,7 +117,7 @@
     row.innerHTML = `
       <img src="${community.pictureUrl || '/assets/logo-icon.png'}" class="w-14 h-14 rounded-full object-cover"/>
       <p class="font-headline-md text-headline-md">${escapeHtml(community.name)}</p>
-      <a href="/community/${encodeURIComponent(community.id)}/gate-keeping" class="font-label-md text-label-md bg-primary-container text-on-primary-container px-5 py-2 rounded-xl font-bold hover:opacity-90 transition-all">Manage</a>
+      <a href="/community/gate-keeping.html?communityId=${encodeURIComponent(community.id)}" class="font-label-md text-label-md bg-primary-container text-on-primary-container px-5 py-2 rounded-xl font-bold hover:opacity-90 transition-all">Manage</a>
     `;
     return row;
   }
@@ -179,7 +179,7 @@
           payload.onboarded_by_name = mod.name;
         }
         await setDoc(doc(db, 'Communities', community.id), payload, {merge: true});
-        location.href = `/community/${encodeURIComponent(community.id)}/gate-keeping`;
+        location.href = `/community/gate-keeping.html?communityId=${encodeURIComponent(community.id)}`;
       } catch (err) {
         btn.disabled = false;
         btn.textContent = community.onboarded ? 'Join as mod' : 'Onboard';
