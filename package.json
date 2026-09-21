@@ -4,7 +4,8 @@
   "scripts": {
     "build:pages": "node scripts/build-pages.js",
     "prestart": "npm run build:pages && npm run build --prefix functions",
-    "start": "concurrently -k -n emulators,web -c blue,green \"firebase emulators:start --only firestore,functions,auth\" \"serve -l 5002 public\""
+    "start": "concurrently -k -n emulators,web -c blue,green \"firebase emulators:start --only firestore,functions,auth\" \"serve -l 5002 public\"",
+    "test": "firebase emulators:exec --only firestore,auth \"npm test --prefix functions\""
   },
   "devDependencies": {
     "concurrently": "^9.1.0",

@@ -32,18 +32,24 @@ service cloud.firestore {
       // not one routed through a get() call.
       allow read: if request.auth != null && request.auth.uid in resource.data.mods;
 
-      // Onboarding (creating this doc, or a second mod joining an existing
-      // one) is a direct client write, gated on the caller's own
-      // Mods/{uid}.communities — populated only by listMyCommunities after
-      // it verifies admin status against Watobot, so this can't be
-      // satisfied by anything the client itself controls. The extra checks
-      // stop a write from onboarding without including yourself, or from
-      // dropping an existing mod out of an already-onboarded community.
-      allow write: if request.auth != null &&
+      // Onboarding (creating this doc) or a second mod joining an existing
+      // one (updating it) is a direct client write, gated on the caller's
+      // own Mods/{uid}.communities — populated only by listMyCommunities
+      // after it verifies admin status against Watobot, so this can't be
+      // satisfied by anything the client itself controls. create/update are
+      // split (rather than one `write` rule with an `!exists() || ...`
+      // check) so `update` can safely reference `resource.data.mods` —
+      // referencing it from a rule that also matches `create`, where
+      // `resource` doesn't exist yet, is a null-value evaluation error.
+      allow create: if request.auth != null &&
+        communityId in get(/databases/$(database)/documents/Mods/$(request.auth.uid)).data.communities &&
+        request.auth.uid in request.resource.data.mods;
+
+      // Joining an existing community can't drop an existing mod out of it.
+      allow update: if request.auth != null &&
         communityId in get(/databases/$(database)/documents/Mods/$(request.auth.uid)).data.communities &&
         request.auth.uid in request.resource.data.mods &&
-        (!exists(/databases/$(database)/documents/Communities/$(communityId)) ||
-          request.resource.data.mods.hasAll(resource.data.mods));
+        request.resource.data.mods.hasAll(resource.data.mods);
 
       match /Forms/{formId} {
         // Public read: the unauthenticated application form page needs

@@ -165,6 +165,35 @@ process can't chain-verify (e.g. a bare Let's Encrypt cert), also set
 Nothing else — no GCP credentials, no service account, no login — is
 needed for the emulator path; it never talks to the real Firebase project.
 
+## Tests
+
+`npm test` runs `functions/test/gatekeeping.test.ts` (vitest) inside
+`firebase emulators:exec --only firestore,auth`, which starts a throwaway
+Firestore + Auth emulator, runs the suite, then tears it down. No Watobot
+or WhatsApp needed — every Watobot call is mocked (`functions/test/watobotMock.ts`).
+
+The suite is two `describe` blocks of tests that run in declared order and
+share Firestore state across the whole file (not independent/isolated
+tests) — it walks one mod (Alice) through sign-in → onboarding → form
+creation → a public submission → approval → the hourly join-check cron,
+then a second mod (Bob) joining that same already-onboarded community,
+editing the form, and rejecting a separate applicant. "Client steps" (the
+direct Firestore writes dashboard.html/community-gate-keeping.html make)
+are inlined via `@firebase/rules-unit-testing`'s rules-enforced Firestore
+client rather than by loading the actual HTML/JS, so the suite verifies
+the firestore.rules + Functions contract those pages rely on, not the DOM
+code itself.
+
+One non-obvious gotcha if you extend this suite: `firebase emulators:exec`
+sets `FIREBASE_CONFIG` in the child process to the real `.firebaserc`
+project (`wacom-app`), and firebase-admin's `initializeApp()` prefers that
+over any `GCLOUD_PROJECT` override — so the test file reads the admin
+SDK's actually-resolved `projectId` back out and hands that same id to
+`initializeTestEnvironment`, rather than hardcoding one. Passing mismatched
+project ids to the two SDKs doesn't error — they just silently write to two
+separate empty namespaces in the same emulator, and every rule's
+`get()`/`exists()` cross-doc lookup then evaluates against `null`.
+
 ## Deploy
 
 Both triggered by a push to `main` (`.github/workflows/deploy.yml`):
