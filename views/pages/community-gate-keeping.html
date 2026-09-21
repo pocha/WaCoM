@@ -8,20 +8,26 @@
       <div class="flex gap-1 border-b border-outline-variant mb-6 mt-6">
         <a href="#" class="px-4 py-3 font-label-md text-label-md font-bold text-primary border-b-2 border-primary">Gatekeeping</a>
         <span class="px-4 py-3 font-label-md text-label-md text-on-surface-variant/50 cursor-not-allowed" title="Coming soon">Inactive Members</span>
-        <span class="px-4 py-3 font-label-md text-label-md text-on-surface-variant/50 cursor-not-allowed" title="Coming soon">Text Rules</span>
       </div>
 
+      <section class="card p-6 mb-8">
+        <h2 class="font-headline-md text-headline-md mb-4">Community Rules</h2>
+        <textarea id="communityRulesInput" rows="5" placeholder="e.g. Be respectful, no spam, introduce yourself when you join…" class="w-full bg-surface-container-low border-b-2 border-transparent focus:border-primary focus:ring-0 rounded-lg p-3 outline-none mb-3"></textarea>
+        <div id="rulesMessage" class="min-h-[20px] text-sm mb-2"></div>
+        <button id="saveRulesBtn" class="border border-primary text-primary font-bold px-6 py-3 rounded-xl hover:bg-primary-container/20 transition-all">Save Rules</button>
+        <p class="text-muted-sm mt-2">Shown to applicants on the application form.</p>
+      </section>
+
       <section class="card p-6">
-        <h2 class="font-headline-md text-headline-md mb-4">Application Form</h2>
-        <div id="formLinkBox" class="hidden bg-surface-container-low rounded-lg p-4 mb-4 flex items-center justify-between gap-4">
-          <span id="formLinkText" class="font-mono text-sm break-all"></span>
-          <button id="copyFormLinkBtn" class="font-label-md text-label-md text-primary font-bold flex-shrink-0">Copy</button>
+        <div class="flex items-center justify-between mb-1">
+          <h2 class="font-headline-md text-headline-md">Application Form</h2>
+          <a id="previewFormLink" href="#" target="_blank" rel="noopener" class="hidden font-label-md text-label-md text-primary font-bold flex-shrink-0">Preview</a>
         </div>
+        <p class="text-muted-sm mb-4">Every applicant is always asked for their phone number — no need to add that as a question.</p>
         <div id="questionRows" class="flex flex-col gap-3 mb-4"></div>
         <button id="addQuestionBtn" type="button" class="text-primary font-bold font-body-md mb-4">+ Add question</button>
         <div id="formMessage" class="min-h-[20px] text-sm mb-2"></div>
-        <button id="saveFormBtn" class="bg-primary-container text-on-primary-container font-bold px-6 py-3 rounded-xl hover:opacity-90 transition-all">Save Form</button>
-        <p class="text-muted-sm mt-2">Every applicant is always asked for their phone number — no need to add that as a question.</p>
+        <button id="saveFormBtn" class="bg-primary-container text-on-primary-container font-bold px-6 py-3 rounded-xl hover:opacity-90 transition-all">Save Form to Preview</button>
       </section>
 
       <section class="mt-8">
@@ -66,10 +72,34 @@
       if (community.pictureUrl) {
         document.getElementById('communityPicture').src = community.pictureUrl;
       }
+      document.getElementById('communityRulesInput').value = community.rules || '';
     } else {
       document.getElementById('communityName').textContent = communityJid;
     }
   }
+
+  document.getElementById('saveRulesBtn').addEventListener('click', async () => {
+    const msg = document.getElementById('rulesMessage');
+    const rules = document.getElementById('communityRulesInput').value.trim();
+    msg.textContent = 'Saving…';
+    msg.className = 'min-h-[20px] text-sm text-on-surface-variant';
+    try {
+      await updateDoc(doc(db, 'Communities', communityJid), {rules});
+      community = {...(community || {}), rules};
+      // The public form page reads Forms/{formId}, not Communities/{jid}
+      // (it can't — that doc is mod-only) — so the active form's own
+      // snapshot has to be kept in sync too, or a rules edit would only
+      // show up next time the form itself is saved.
+      if (currentFormId) {
+        await updateDoc(doc(db, 'Communities', communityJid, 'Forms', currentFormId), {communityRules: rules});
+      }
+      msg.textContent = 'Saved.';
+      msg.className = 'min-h-[20px] text-sm text-primary';
+    } catch (err) {
+      msg.textContent = err.message || 'Failed to save rules.';
+      msg.className = 'min-h-[20px] text-sm text-error';
+    }
+  });
 
   async function loadActiveForm() {
     const formsRef = collection(db, 'Communities', communityJid, 'Forms');
@@ -87,9 +117,9 @@
 
   function showFormLink(formId) {
     const link = `${location.origin}/form?c=${encodeURIComponent(communityJid)}&f=${encodeURIComponent(formId)}`;
-    document.getElementById('formLinkText').textContent = link;
-    document.getElementById('formLinkBox').classList.remove('hidden');
-    document.getElementById('copyFormLinkBtn').onclick = () => navigator.clipboard.writeText(link);
+    const previewLink = document.getElementById('previewFormLink');
+    previewLink.href = link;
+    previewLink.classList.remove('hidden');
   }
 
   const questionRows = document.getElementById('questionRows');
@@ -143,6 +173,7 @@
       batch.set(newFormRef, {
         communityName: community?.name ?? communityJid,
         communityPictureUrl: community?.pictureUrl ?? null,
+        communityRules: community?.rules ?? '',
         questions,
         active: true,
         created_by: auth.currentUser.uid,

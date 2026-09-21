@@ -141,6 +141,7 @@ describe("mod Alice: onboarding through approval", () => {
     await setDoc(doc(clientDb(UID_ALICE), "Communities", COMMUNITY_JID, "Forms", "form1"), {
       communityName: "Test Community",
       communityPictureUrl: PICTURE_URL,
+      communityRules: "",
       questions: [{id: "q1", label: "Why do you want to join?", required: true}],
       active: true,
       created_by: UID_ALICE,
@@ -151,6 +152,24 @@ describe("mod Alice: onboarding through approval", () => {
       .collection("Communities").doc(COMMUNITY_JID)
       .collection("Forms").doc("form1").get()).data();
     expect(form).toMatchObject({active: true, created_by: UID_ALICE});
+  });
+
+  test("saving community rules pushes them onto the already-saved active form", async () => {
+    // The public form page reads Forms/{formId}, not Communities/{jid} (it
+    // can't — that doc is mod-only), so community-gate-keeping.html's "Save
+    // Rules" action must also patch the active form's own communityRules
+    // snapshot, or an edit here would only show up next time the form
+    // itself is saved.
+    const rulesText = "Be respectful. No spam. Introduce yourself when you join.";
+    await updateDoc(doc(clientDb(UID_ALICE), "Communities", COMMUNITY_JID), {rules: rulesText});
+    await updateDoc(doc(clientDb(UID_ALICE), "Communities", COMMUNITY_JID, "Forms", "form1"), {
+      communityRules: rulesText,
+    });
+
+    // form.html reads this doc unauthenticated.
+    const publicDb = testEnv.unauthenticatedContext().firestore();
+    const form = (await getDoc(doc(publicDb, "Communities", COMMUNITY_JID, "Forms", "form1"))).data();
+    expect(form?.communityRules).toBe(rulesText);
   });
 
   test("accepts a public form submission", async () => {

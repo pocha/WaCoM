@@ -25,6 +25,11 @@
       <p class="text-on-surface-variant font-body-md">Fill this out to request to join.</p>
     </div>
 
+    <div id="communityRulesBox" class="hidden bg-surface-container-low rounded-lg p-4 flex flex-col gap-1">
+      <h2 class="font-label-md text-label-md text-on-surface-variant font-bold">Community Rules</h2>
+      <p id="communityRulesText" class="text-sm whitespace-pre-wrap"></p>
+    </div>
+
     <div class="flex flex-col gap-1">
       <label class="font-label-md text-label-md text-on-surface-variant">WhatsApp Number *</label>
       <input id="phoneInput" type="tel" required class="bg-surface-container-low border-b-2 border-transparent focus:border-primary focus:ring-0 rounded-lg p-3 outline-none" placeholder="+14155552671"/>
@@ -84,6 +89,10 @@
     document.getElementById('communityTitle').textContent = `Join ${form.communityName}`;
     if (form.communityPictureUrl) {
       document.getElementById('brandLogo').src = form.communityPictureUrl;
+    }
+    if (form.communityRules) {
+      document.getElementById('communityRulesText').textContent = form.communityRules;
+      document.getElementById('communityRulesBox').classList.remove('hidden');
     }
     form.questions.forEach((q) => questionFields.appendChild(renderQuestionField(q)));
 

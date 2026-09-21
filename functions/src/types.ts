@@ -24,6 +24,11 @@ export interface CommunityDoc {
   // from their merge write so it isn't overwritten with their own name.
   onboarded_by_name: string;
   onboarded_at: FirebaseFirestore.Timestamp;
+  // Mod-edited, shown to applicants on the public form. Snapshotted onto
+  // FormDoc.communityRules whenever a form is saved (same pattern as
+  // communityName/communityPictureUrl below) since the public form page
+  // can't read Communities/{jid} directly.
+  rules?: string;
 }
 
 export interface FormQuestion {
@@ -35,6 +40,7 @@ export interface FormQuestion {
 export interface FormDoc {
   communityName: string;
   communityPictureUrl: string | null;
+  communityRules: string;
   questions: FormQuestion[];
   active: boolean;
   created_by: string;
