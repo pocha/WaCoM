@@ -3,6 +3,8 @@ functions/lib/
 # Built from views/pages/ + views/partials/ by scripts/build-pages.js
 public/dashboard.html
 public/community/gate-keeping.html
+# Generated from functions/.env(.local)'s WATOBOT_API_BASE by the same script
+public/assets/watobot-config.js
 .firebase/
 firebase-debug.log
 firebase-debug.*.log

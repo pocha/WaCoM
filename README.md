@@ -13,11 +13,12 @@ hourly job confirms once the applicant has actually joined.
   source). `index.html` and `form.html` in `public/` are plain, unbuilt
   static files. `public/serve.json` rewrites `/community/:id/gate-keeping`
   to that one built file (Community tabs: Gatekeeping live, Inactive
-  Members / Text Rules disabled placeholders).
+  Members disabled placeholder).
 - `public/assets/` — shared client code: `wacom.js` (Firebase init, auth
-  helpers, direct-to-Watobot fetch helper), `firebase-config.js` /
-  `watobot-config.js` (public, non-secret endpoint config), `theme.css` /
-  `theme.js` (Watobot's own design tokens, copied).
+  helpers, direct-to-Watobot fetch helper), `firebase-config.js` (public,
+  non-secret Firebase web app config, committed), `watobot-config.js`
+  (gitignored — see below), `theme.css` / `theme.js` (Watobot's own design
+  tokens, copied).
 - `functions/` — Firebase Cloud Functions (TypeScript), deliberately small
   — see "Why so few Functions" below.
 - `firestore.rules` / `firestore.indexes.json` — Firestore schema/security.
@@ -75,9 +76,10 @@ Function (Admin SDK) can ever write to it.
    Functions (2nd gen).
 2. Fill in `public/assets/firebase-config.js` with the project's web app
    config, and `.firebaserc`'s `default` project id.
-3. `functions/.env` sets `WATOBOT_API_BASE` for production Function calls;
-   `public/assets/watobot-config.js` sets the same value for the browser's
-   direct calls — keep both in sync.
+3. `functions/.env` sets `WATOBOT_API_BASE` for production Function calls.
+   `public/assets/watobot-config.js` (gitignored) is generated from that
+   same value by `scripts/build-pages.js` — see "Local development" below —
+   so there's nothing separate to keep in sync here.
 4. GitHub Pages: repo Settings → Pages → set the source to "GitHub
    Actions" (`gh api -X PUT repos/<owner>/<repo>/pages -f build_type=workflow`
    — the classic "deploy from a branch" source only supports serving `/` or
@@ -122,35 +124,38 @@ cd functions && npm install && cd ..
 npm start
 ```
 
-`npm start` builds `views/pages/` → `public/` and the Functions once
+`npm start` builds `views/pages/` → `public/` (including generating
+`public/assets/watobot-config.js`, see below) and the Functions once
 (`prestart`), then runs the Firebase Emulator Suite (Firestore on :8080,
-Functions on :5501, Auth on :9099, emulator UI on :4400) alongside a static
+Functions on :5501, Auth on :9099, emulator UI on :4700) alongside a static
 server for `public/` on **http://localhost:5002**. `public/assets/wacom.js`
 auto-detects `localhost` and points the Firebase client SDK at the
 emulators instead of the real project, so no `firebase-config.js` edits are
 needed for local testing.
 
 Functions runs on :5501 instead of the Firebase default :5001, and the
-emulator UI on :4400 instead of :4000, because a local Watobot checkout
+emulator UI on :4700 instead of :4000, because a local Watobot checkout
 (needed alongside this repo for end-to-end testing — see below) runs its
 own Functions emulator on the default :5001. Both repos' Firestore/Auth
 emulators stay on the defaults since Watobot's `npm start` only ever
 starts `--only functions`.
 
-Before running, point both of these at your local Watobot instance (same
-value in each — one is read by the Functions emulator, the other by the
-browser):
-- `functions/.env.local` — `WATOBOT_API_BASE=https://localhost` (or
-  whatever port/scheme your local Watobot uses). Gitignored, loaded only by
-  the emulator, never on deploy.
-- `public/assets/watobot-config.js` — edit `WATOBOT_API_BASE` directly to
-  the same value. This file *is* committed (like `firebase-config.js`), so
-  don't commit your local edit — revert it before pushing.
+Point your local Watobot instance in exactly one place:
+`functions/.env.local` — `WATOBOT_API_BASE=https://localhost` (or whatever
+port/scheme your local Watobot uses). Gitignored, loaded only by the
+emulator, never on deploy. `scripts/build-pages.js` (run by `prestart`)
+reads that same value — layered over `functions/.env`, exactly like the
+Functions emulator itself does — and writes it into
+`public/assets/watobot-config.js`, so the browser's direct-to-Watobot
+calls and the Functions emulator's calls always agree on which Watobot
+they're hitting. Don't hand-edit or commit `watobot-config.js` — it's
+regenerated on every `npm start`/deploy and gitignored.
 
 If your local Watobot serves HTTPS with a certificate the emulator's Node
 process can't chain-verify (e.g. a bare Let's Encrypt cert), also set
 `functions/.env.local`'s `WATOBOT_INSECURE_TLS=true` — never set that in
-`functions/.env`.
+`functions/.env`. This only affects the Functions emulator's own fetch
+calls; the browser's calls go through Chrome's own certificate handling.
 
 ### What else you need running
 
