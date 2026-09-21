@@ -112,8 +112,24 @@ Function (Admin SDK) can ever write to it.
    gcloud iam service-accounts add-iam-policy-binding <project-id>@appspot.gserviceaccount.com \
      --member="serviceAccount:<sa-email>" --role="roles/iam.serviceAccountUser"
    ```
+7. `validateAndSignIn` calls `admin.auth().createCustomToken()`, which on a
+   deployed (not emulated) function signs the JWT by calling IAM's
+   `signBlob` API to self-impersonate the function's own runtime service
+   account — Gen2 Functions run as the default compute service account
+   (`<project-number>-compute@developer.gserviceaccount.com`) unless one is
+   configured explicitly. That account needs
+   `roles/iam.serviceAccountTokenCreator` **on itself**, or every call fails
+   at runtime with `auth/insufficient-permission: Permission
+   'iam.serviceAccounts.signBlob' denied` (this is a different, deploy-time
+   vs. runtime distinction from step 6's bindings, which are about the
+   *deploying* identity, not the function's own runtime identity):
+   ```
+   gcloud iam service-accounts add-iam-policy-binding <project-number>-compute@developer.gserviceaccount.com \
+     --member="serviceAccount:<project-number>-compute@developer.gserviceaccount.com" \
+     --role="roles/iam.serviceAccountTokenCreator" --project <project-id>
+   ```
 
-Both secrets and all three IAM bindings are already set for this repo
+Both secrets and all four IAM bindings are already set for this repo
 (`pocha/WaCoM` → Firebase project `wacom-app`).
 
 ## Local development
