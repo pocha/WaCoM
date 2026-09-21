@@ -39,8 +39,10 @@
 </div>
 
 <script type="module">
-  import {onAuthReady, signInWithApiKey, call, db} from "/assets/wacom.js";
-  import {collection, query, where, onSnapshot} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+  import {auth, onAuthReady, signInWithApiKey, call, db, getOwnMod, watobotFetch} from "/assets/wacom.js";
+  import {
+    collection, doc, query, where, onSnapshot, setDoc, arrayUnion, serverTimestamp,
+  } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
   const loginModal = document.getElementById('loginModal');
   const apiKeyForm = document.getElementById('apiKeyForm');
@@ -59,7 +61,6 @@
   const allList = document.getElementById('allList');
 
   const listMyCommunities = call('listMyCommunities');
-  const onboardCommunity = call('onboardCommunity');
 
   let onboardedIds = new Set();
 
@@ -160,7 +161,14 @@
       btn.disabled = true;
       btn.textContent = 'Onboarding…';
       try {
-        await onboardCommunity({communityJid: community.id});
+        const {api_key: apiKey} = await getOwnMod();
+        const info = await watobotFetch(apiKey, `/api/whatsapp/communities/${encodeURIComponent(community.id)}`);
+        await setDoc(doc(db, 'Communities', community.id), {
+          name: info.subject,
+          pictureUrl: info.pictureUrl,
+          mods: arrayUnion(auth.currentUser.uid),
+          onboarded_at: serverTimestamp(),
+        }, {merge: true});
         location.href = `/community/${encodeURIComponent(community.id)}/gate-keeping`;
       } catch (err) {
         btn.disabled = false;

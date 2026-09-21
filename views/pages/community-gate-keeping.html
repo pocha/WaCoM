@@ -33,9 +33,10 @@
 
 <!--#include partial="footer"-->
 <script type="module">
-  import {onAuthReady, call, db} from "/assets/wacom.js";
+  import {auth, onAuthReady, db, getOwnMod, watobotFetch} from "/assets/wacom.js";
   import {
-    collection, doc, getDoc, getDocs, query, where, orderBy, onSnapshot, limit
+    collection, doc, getDoc, getDocs, query, where, orderBy, onSnapshot, limit,
+    writeBatch, updateDoc, serverTimestamp,
   } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
   const communityJid = decodeURIComponent(location.pathname.split('/')[2] || '');
@@ -43,11 +44,8 @@
     location.href = '/dashboard';
   }
 
-  const createForm = call('createForm');
-  const approveApplicant = call('approveApplicant');
-  const rejectApplicant = call('rejectApplicant');
-
   let currentFormId = null;
+  let community = null;
 
   onAuthReady((user) => {
     if (!user) {
@@ -62,11 +60,11 @@
   async function loadCommunityInfo() {
     const snap = await getDoc(doc(db, 'Communities', communityJid));
     if (snap.exists()) {
-      const data = snap.data();
-      document.getElementById('communityName').textContent = data.name;
-      document.title = `${data.name} - Watomod`;
-      if (data.pictureUrl) {
-        document.getElementById('communityPicture').src = data.pictureUrl;
+      community = snap.data();
+      document.getElementById('communityName').textContent = community.name;
+      document.title = `${community.name} - Watomod`;
+      if (community.pictureUrl) {
+        document.getElementById('communityPicture').src = community.pictureUrl;
       }
     } else {
       document.getElementById('communityName').textContent = communityJid;
@@ -136,9 +134,23 @@
     msg.textContent = 'Saving…';
     msg.className = 'min-h-[20px] text-sm text-on-surface-variant';
     try {
-      const {formId} = await createForm({communityJid, questions});
-      currentFormId = formId;
-      showFormLink(formId);
+      const formsRef = collection(db, 'Communities', communityJid, 'Forms');
+      // Only one active form per community at a time — deactivate any others.
+      const activeSnap = await getDocs(query(formsRef, where('active', '==', true)));
+      const batch = writeBatch(db);
+      activeSnap.forEach((d) => batch.update(d.ref, {active: false}));
+      const newFormRef = doc(formsRef);
+      batch.set(newFormRef, {
+        communityName: community?.name ?? communityJid,
+        communityPictureUrl: community?.pictureUrl ?? null,
+        questions,
+        active: true,
+        created_by: auth.currentUser.uid,
+        created_at: serverTimestamp(),
+      });
+      await batch.commit();
+      currentFormId = newFormRef.id;
+      showFormLink(newFormRef.id);
       msg.textContent = 'Saved.';
       msg.className = 'min-h-[20px] text-sm text-primary';
     } catch (err) {
@@ -219,7 +231,21 @@
         errorMsg.classList.add('hidden');
         approveBtn.textContent = 'Approving…';
         try {
-          await approveApplicant({communityJid, applicantId: id});
+          const mod = await getOwnMod();
+          const invite = await watobotFetch(mod.api_key, `/api/whatsapp/communities/${encodeURIComponent(communityJid)}/invite`);
+          const message = `You've been approved to join "${community?.name ?? communityJid}"! Tap to join: ${invite.link}\n\n` +
+            "Note: this invite link is shared by everyone, so clicking it first puts you in a pending-approval queue for the community. " +
+            "An automatic check runs every hour and lets you in once it confirms your approval — no further action needed on your end.";
+          await watobotFetch(mod.api_key, '/api/message', {
+            method: 'POST',
+            body: JSON.stringify({to: applicant.phone, message}),
+          });
+          await updateDoc(doc(db, 'Communities', communityJid, 'Applicants', id), {
+            status: 'pending_join',
+            approved_by: auth.currentUser.uid,
+            approved_by_name: mod.name,
+            invited_at: serverTimestamp(),
+          });
           buttonRow.remove();
         } catch (err) {
           approveBtn.disabled = false;
@@ -236,7 +262,13 @@
         errorMsg.classList.add('hidden');
         rejectBtn.textContent = 'Rejecting…';
         try {
-          await rejectApplicant({communityJid, applicantId: id});
+          const mod = await getOwnMod();
+          await updateDoc(doc(db, 'Communities', communityJid, 'Applicants', id), {
+            status: 'rejected',
+            rejected_by: auth.currentUser.uid,
+            rejected_by_name: mod.name,
+            rejected_at: serverTimestamp(),
+          });
           buttonRow.remove();
         } catch (err) {
           approveBtn.disabled = false;

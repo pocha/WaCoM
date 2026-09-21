@@ -11,6 +11,8 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 import {
   connectFirestoreEmulator,
+  doc,
+  getDoc,
   getFirestore,
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 import {
@@ -19,6 +21,7 @@ import {
   httpsCallable,
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-functions.js";
 import {firebaseConfig} from "./firebase-config.js";
+import {WATOBOT_API_BASE} from "./watobot-config.js";
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
@@ -58,4 +61,35 @@ export async function signInWithApiKey(apiKey, name) {
 
 export function logOut() {
   return signOut(auth);
+}
+
+// Mods/{uid} is owner-read-only (firestore.rules) — used to get the mod's
+// own Watobot API key (for the direct-from-browser calls below) and name
+// (for approved_by_name/rejected_by_name, without needing a Function to
+// look up another mod's otherwise-locked-down doc). Never call this for
+// anyone but the signed-in user; Firestore denies it anyway.
+export async function getOwnMod() {
+  const snap = await getDoc(doc(db, "Mods", auth.currentUser.uid));
+  if (!snap.exists()) throw new Error("No Watobot API key on file for this account");
+  return snap.data();
+}
+
+// Watobot allows cross-origin calls from anywhere (see watobot-config.js),
+// so the browser talks to it directly instead of proxying through a
+// Function for actions that don't need server-side trust — mirrors
+// functions/src/watobotClient.ts's watobotFetch.
+export async function watobotFetch(apiKey, path, init) {
+  const response = await fetch(`${WATOBOT_API_BASE}${path}`, {
+    ...init,
+    headers: {
+      "x-api-key": apiKey,
+      "content-type": "application/json",
+      ...(init?.headers ?? {}),
+    },
+  });
+  if (!response.ok) {
+    const body = await response.text().catch(() => "");
+    throw new Error(`Watobot API error (${response.status}): ${body}`);
+  }
+  return response.json();
 }

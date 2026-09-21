@@ -3,6 +3,10 @@ export interface ModDoc {
   provider: "watobot";
   phone_number: string;
   name: string;
+  // Community jids Watobot has verified this account as admin of, written
+  // only by listMyCommunities — firestore.rules gates direct client writes
+  // to Communities/{jid} on this field, so it must never be client-settable.
+  communities?: string[];
   created_at: FirebaseFirestore.Timestamp;
   updated_at: FirebaseFirestore.Timestamp;
 }

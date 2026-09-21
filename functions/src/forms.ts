@@ -2,8 +2,7 @@ import {onCall, HttpsError} from "firebase-functions/v2/https";
 import {FieldValue} from "firebase-admin/firestore";
 import {isValidPhoneNumber} from "libphonenumber-js";
 import {db} from "./admin";
-import {requireCommunityMod, requireUid} from "./modAccess";
-import {ApplicantDoc, FormDoc, FormQuestion} from "./types";
+import {ApplicantDoc, FormDoc} from "./types";
 
 // The applicant doc id, so a resubmission overwrites the same doc instead of
 // piling up duplicates — phone is already validated as a real E.164 number
@@ -14,48 +13,9 @@ function phoneDocId(phone: string): string {
 
 // Public form pages read Communities/{jid}/Forms/{formId} directly via the
 // Firestore client SDK (allowed by firestore.rules — Forms are publicly
-// readable), so there's no separate getPublicForm function.
-
-export const createForm = onCall(async (request) => {
-  const uid = requireUid(request.auth);
-  const communityJid = request.data?.communityJid;
-  const questions = request.data?.questions;
-  if (!communityJid || typeof communityJid !== "string") {
-    throw new HttpsError("invalid-argument", "communityJid is required");
-  }
-  if (!Array.isArray(questions) || questions.length === 0) {
-    throw new HttpsError("invalid-argument", "At least one question is required");
-  }
-  const cleanQuestions: FormQuestion[] = questions.map((q, i) => ({
-    id: q.id || `q${i}`,
-    label: String(q.label ?? "").trim(),
-    required: Boolean(q.required),
-  }));
-  if (cleanQuestions.some((q) => !q.label)) {
-    throw new HttpsError("invalid-argument", "Every question needs a label");
-  }
-
-  const community = await requireCommunityMod(uid, communityJid);
-  const formsRef = db.collection("Communities").doc(communityJid).collection("Forms");
-
-  // Only one active form per community at a time — deactivate any others.
-  const activeSnap = await formsRef.where("active", "==", true).get();
-  const batch = db.batch();
-  activeSnap.forEach((doc) => batch.update(doc.ref, {active: false}));
-
-  const newFormRef = formsRef.doc();
-  batch.set(newFormRef, {
-    communityName: community.name,
-    communityPictureUrl: community.pictureUrl,
-    questions: cleanQuestions,
-    active: true,
-    created_by: uid,
-    created_at: FieldValue.serverTimestamp(),
-  });
-  await batch.commit();
-
-  return {success: true, formId: newFormRef.id};
-});
+// readable). Mods create/deactivate forms as direct client writes too
+// (firestore.rules: isMod(communityId)) — no server step needed there since
+// it's pure Firestore data, no Watobot call involved.
 
 export const submitApplication = onCall(async (request) => {
   const communityJid = request.data?.communityJid;

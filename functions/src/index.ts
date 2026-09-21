@@ -16,7 +16,6 @@ if (process.env.WATOBOT_INSECURE_TLS === "true") {
 }
 
 export {validateAndSignIn} from "./auth";
-export {listMyCommunities, onboardCommunity} from "./communities";
-export {createForm, submitApplication} from "./forms";
-export {approveApplicant, rejectApplicant} from "./applicants";
+export {listMyCommunities} from "./communities";
+export {submitApplication} from "./forms";
 export {hourlyJoinCheck} from "./cron";

@@ -27,11 +27,6 @@ export interface CommunityInfo {
   participants: CommunityParticipant[];
 }
 
-export interface CommunityInvite {
-  code: string;
-  link: string;
-}
-
 async function watobotFetch(apiKey: string, path: string, init?: RequestInit): Promise<any> {
   const response = await fetch(`${WATOBOT_API_BASE.value()}${path}`, {
     ...init,
@@ -63,17 +58,6 @@ export async function listCommunities(apiKey: string): Promise<CommunitySummary[
 
 export async function getCommunityInfo(apiKey: string, communityJid: string): Promise<CommunityInfo> {
   return watobotFetch(apiKey, `/api/whatsapp/communities/${encodeURIComponent(communityJid)}`);
-}
-
-export async function getCommunityInvite(apiKey: string, communityJid: string): Promise<CommunityInvite> {
-  return watobotFetch(apiKey, `/api/whatsapp/communities/${encodeURIComponent(communityJid)}/invite`);
-}
-
-export async function sendMessage(apiKey: string, to: string, message: string): Promise<void> {
-  await watobotFetch(apiKey, "/api/message", {
-    method: "POST",
-    body: JSON.stringify({to, message}),
-  });
 }
 
 export function phoneDigits(phone: string): string {
