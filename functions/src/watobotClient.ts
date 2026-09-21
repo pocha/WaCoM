@@ -24,6 +24,7 @@ export interface CommunityInfo {
   id: string;
   subject: string;
   pictureUrl: string | null;
+  inviteLink: string | null;
   participants: CommunityParticipant[];
 }
 

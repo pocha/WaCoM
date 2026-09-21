@@ -231,9 +231,11 @@
         errorMsg.classList.add('hidden');
         approveBtn.textContent = 'Approving…';
         try {
+          if (!community?.inviteLink) {
+            throw new Error('No invite link cached for this community — click "Load All My Communities" on the dashboard to refresh it.');
+          }
           const mod = await getOwnMod();
-          const invite = await watobotFetch(mod.api_key, `/api/whatsapp/communities/${encodeURIComponent(communityJid)}/invite`);
-          const message = `You've been approved to join "${community?.name ?? communityJid}"! Tap to join: ${invite.link}\n\n` +
+          const message = `You've been approved to join "${community?.name ?? communityJid}"! Tap to join: ${community.inviteLink}\n\n` +
             "Note: this invite link is shared by everyone, so clicking it first puts you in a pending-approval queue for the community. " +
             "An automatic check runs every hour and lets you in once it confirms your approval — no further action needed on your end.";
           await watobotFetch(mod.api_key, '/api/message', {

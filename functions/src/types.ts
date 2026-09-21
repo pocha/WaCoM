@@ -14,6 +14,10 @@ export interface ModDoc {
 export interface CommunityDoc {
   name: string;
   pictureUrl: string | null;
+  // Refreshed each time any mod of this community clicks "Load All My
+  // Communities" (listMyCommunities) — approving an applicant reads this
+  // cached value instead of calling Watobot again.
+  inviteLink: string | null;
   mods: string[];
   onboarded_at: FirebaseFirestore.Timestamp;
 }

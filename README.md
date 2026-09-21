@@ -52,6 +52,16 @@ admin claim for a community it was never actually verified against. Forms
 and Applicants writes are gated more simply, on `request.auth.uid` already
 being in the parent `Communities/{jid}.mods` array.
 
+`listMyCommunities` also fetches each community's `pictureUrl` and
+`inviteLink` from Watobot (one combined `community-info` call per
+community, piggybacking on the mudslide connection it already opens) and
+caches them onto the `Communities/{jid}` doc. Onboarding and approving an
+applicant both just read that cached value instead of calling Watobot
+again — the only client-side Watobot call left is sending the approval
+WhatsApp message itself. Clicking "Load All My Communities" on the
+dashboard re-runs `listMyCommunities` and refreshes the cache if the
+picture or invite link changed.
+
 `Mods/{uid}` itself is owner-**read**-only, never client-writable at all —
 a client can read its own `api_key`/`name`/`communities` (needed for the
 direct Watobot calls and to stamp `approved_by_name`/`rejected_by_name`
@@ -138,16 +148,17 @@ process can't chain-verify (e.g. a bare Let's Encrypt cert), also set
 ### What else you need running
 
 - **A local Watobot server** on the `communities-support` branch, with the
-  community routes (`GET /api/whatsapp/communities`, `.../:jid`,
-  `.../:jid/invite`) actually present — i.e. built from the branch this
-  repo depends on, not `main`.
+  community routes (`GET /api/whatsapp/communities`, `.../:jid`) actually
+  present — i.e. built from the branch this repo depends on, not `main`.
+  `.../:jid` returns `pictureUrl` and `inviteLink` together (mudslide's
+  `community-info` fetches both in one WhatsApp connection — there's no
+  separate invite-fetch route).
 - **That Watobot account logged into WhatsApp** (QR-scanned) with a
   **permanent** API key generated (`POST /api/apikey/generate` then made
   permanent) — a 1-hour key will expire mid-testing.
 - **The mudslide `community-support` branch built** and wired up as the
   binary Watobot's `mudslideService.js` shells out to, since that's where
-  the actual `communities`/`community-info`/`community-invite` commands
-  live.
+  the actual `communities`/`community-info` commands live.
 - **A real WhatsApp Community** that account administers, to onboard and
   test the form/approval flow against.
 

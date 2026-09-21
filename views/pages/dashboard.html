@@ -39,7 +39,7 @@
 </div>
 
 <script type="module">
-  import {auth, onAuthReady, signInWithApiKey, call, db, getOwnMod, watobotFetch} from "/assets/wacom.js";
+  import {auth, onAuthReady, signInWithApiKey, call, db} from "/assets/wacom.js";
   import {
     collection, doc, query, where, onSnapshot, setDoc, arrayUnion, serverTimestamp,
   } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
@@ -161,11 +161,10 @@
       btn.disabled = true;
       btn.textContent = 'Onboarding…';
       try {
-        const {api_key: apiKey} = await getOwnMod();
-        const info = await watobotFetch(apiKey, `/api/whatsapp/communities/${encodeURIComponent(community.id)}`);
         await setDoc(doc(db, 'Communities', community.id), {
-          name: info.subject,
-          pictureUrl: info.pictureUrl,
+          name: community.name,
+          pictureUrl: community.pictureUrl ?? null,
+          inviteLink: community.inviteLink ?? null,
           mods: arrayUnion(auth.currentUser.uid),
           onboarded_at: serverTimestamp(),
         }, {merge: true});
