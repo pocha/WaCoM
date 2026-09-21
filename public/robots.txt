@@ -1,0 +1,4 @@
+User-agent: *
+Disallow: /dashboard
+Disallow: /dashboard.html
+Disallow: /community/

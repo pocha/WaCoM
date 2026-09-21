@@ -1,0 +1,16 @@
+# Watomod
+
+> Free WhatsApp Community moderation tool. Gatekeep who joins your WhatsApp Community with a custom application form, then review and approve every request before anyone gets an invite link.
+
+Watomod connects to a WhatsApp Community a moderator administers (via a Watobot API key), lets them build a short custom application form, and routes join requests through an approve/reject review queue instead of an open-door invite link. Approval automatically sends the applicant a WhatsApp invite link, and an hourly check confirms once they've actually joined.
+
+Entry Gatekeeping is the first moderation feature and is live today. More moderation tools (plain-text community rules enforcement, auto-removal of repeat offenders, auto-purging silent members) are planned.
+
+## Pages
+
+- [Homepage](https://watomod.com/): product overview, feature list, and onboarding steps
+
+## Notes
+
+- The dashboard and per-community management pages require signing in with a Watobot API key and aren't publicly browsable — see /robots.txt.
+- The public per-community application form (linked to from `/community/form`) is generated per community by its moderator and isn't a fixed URL.
