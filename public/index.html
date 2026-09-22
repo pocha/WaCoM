@@ -37,10 +37,16 @@
 <main class="flex-1 w-full">
 
   <section class="flex flex-col md:flex-row items-center px-gutter md:px-24 py-16 gap-10 overflow-hidden">
-    <div class="w-full md:w-1/2 flex justify-center items-center">
-      <div class="relative w-full max-w-sm aspect-square flex items-center justify-center">
-        <img src="/assets/logo-icon.png" alt="Watomod" class="w-full h-full object-contain"/>
-        <div class="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[130%] h-[130%] bg-gradient-to-tr from-primary-container/30 to-transparent rounded-full blur-3xl"></div>
+    <div class="w-full md:w-1/2 flex flex-col items-center gap-3">
+      <p class="font-label-md text-label-md text-primary uppercase tracking-widest text-xs">See Watomod in action</p>
+      <div class="relative w-full max-w-lg aspect-video rounded-2xl overflow-hidden whatsapp-shadow" id="demoVideoWrap">
+        <img id="demoVideoThumb" src="https://img.youtube.com/vi/pZTVXG21osM/maxresdefault.jpg" onerror="this.onerror=null;this.src='https://img.youtube.com/vi/pZTVXG21osM/hqdefault.jpg';" alt="Watomod demo video" class="w-full h-full object-cover"/>
+        <button id="playDemoVideoBtn" type="button" aria-label="Play demo video" class="absolute inset-0 flex items-center justify-center group cursor-pointer">
+          <span class="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors"></span>
+          <span class="relative w-16 h-16 md:w-20 md:h-20 rounded-full bg-primary flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
+            <span class="material-symbols-outlined text-on-primary text-[36px]" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+          </span>
+        </button>
       </div>
     </div>
     <div class="w-full md:w-1/2 flex flex-col items-start gap-stack-gap">
@@ -228,6 +234,18 @@
 <footer class="px-gutter md:px-24 py-8 border-t border-outline-variant text-center text-on-surface-variant font-body-md text-sm">
   Watomod — Free WhatsApp Community Moderator
 </footer>
+
+<script>
+  // Facade pattern: only load the actual YouTube embed once the user
+  // clicks play, instead of an iframe on every page load.
+  document.getElementById('playDemoVideoBtn').addEventListener('click', function () {
+    document.getElementById('demoVideoWrap').innerHTML =
+      '<iframe class="w-full h-full" src="https://www.youtube.com/embed/pZTVXG21osM?autoplay=1&amp;rel=0" ' +
+      'title="Watomod demo video" frameborder="0" ' +
+      'allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" ' +
+      'allowfullscreen></iframe>';
+  });
+</script>
 
 </body>
 </html>
